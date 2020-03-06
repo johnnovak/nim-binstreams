@@ -5,7 +5,7 @@ import stew/endians2
 
 when not defined(js):
   type
-    StreamSeekPos = enum
+    StreamSeekPos* = enum
       sspSet, sspCur, sspEnd
 
   func toFileSeekPos(s: StreamSeekPos): FileSeekPos =
