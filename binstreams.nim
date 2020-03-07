@@ -1,5 +1,6 @@
 import strformat
 import strutils
+
 import stew/endians2
 
 
@@ -237,7 +238,7 @@ when not defined(js):
       data*: seq[byte]
       pos: Natural
       endian: Endianness
-      closed: bool
+      open: bool
 
   using bs: ByteStream
 
@@ -245,14 +246,17 @@ when not defined(js):
     new(result)
     result.data = data
     result.endian = endian
+    result.open = true
 
   proc newByteStream*(endian: Endianness): ByteStream =
     newByteStream(@[], endian)
 
-  proc close*(bs) = bs.closed = true
+  proc close*(bs) =
+    bs.data = @[]
+    bs.open = false
 
   proc checkStreamOpen(bs) =
-    if bs.closed:
+    if not bs.open:
       raise newException(IOError, "stream has been closed")
 
   proc flush*(bs) = bs.checkStreamOpen()
@@ -348,44 +352,16 @@ when not defined(js):
   proc peekBool*(bs): bool =
     doPeekByteStream(bs): bs.readBool()
 
-  proc swapAndWrite[T: SomeNumber](bs; buf: openArray[T],
-                                   startIndex, numValues: Natural) =
-    var
-      writeBuf {.noinit.}: array[WriteBufSize, T]
-      valuesLeft = numValues
-      bufIndex = startIndex
-
-    while valuesLeft > 0:
-      let valuesToWrite = min(valuesLeft, writeBuf.len)
-      for i in 0..<valuesToWrite:
-        writeBuf[i] = swapBytes(buf[bufIndex])
-        inc(bufIndex)
-
-      let
-        bytesToWrite = valuesToWrite * sizeof(T)
-        bytesWritten = writeBuffer(bs.f, writeBuf[0].addr, bytesToWrite)
-
-      if bytesWritten != bytesToWrite:
-        raiseWriteError(bs)
-      dec(valuesLeft, valuesToWrite)
-
-
   proc write*[T: SomeNumber](bs; buf: openArray[T],
                              startIndex, numValues: Natural) =
     bs.checkStreamOpen()
     if numValues == 0: return
 
-    if startIndex + numValues > buf.len:
-      raise newException(IndexError,
-        "Out of bounds: startIndex + numValues > bufLen " &
-        fmt"(startIndex: {startIndex}, numValues: {numValues}, " &
-        fmt"bufLen: {buf.len})")
-
     let capNeeded = bs.pos + numValues*sizeof(T) - bs.data.len
     if capNeeded > 0:
       bs.data.setLen(bs.data.len + capNeeded)
 
-    for i in 0..<numValues:
+    for i in startIndex..<startIndex + numValues:
       var bytes: array[sizeof(T), byte]
       when sizeof(T) == 1: bytes[0] = cast[byte](buf[i])
       elif sizeof(T) == 2: bytes = toBytes(cast[uint16](buf[i]), bs.endian)
@@ -413,6 +389,8 @@ when not defined(js):
   # }}}
 
 when isMainModule:
+  import os
+
   const
     TestFileBE = "endians-testdata-BE"
     TestFileLE = "endians-testdata-LE"
@@ -428,11 +406,6 @@ when isMainModule:
     TestString = "Some girls wander by mistake"
     TestChar = char(42)
     TestBooleans = @[-127'i8, -1'i8, 0'i8, 1'i8, 127'i8]
-
-  # Helpers
-  template getAs(T: typedesc[SomeNumber], buf: openArray[byte],
-                 startIndex: Natural): T =
-    cast[ptr T](buf[startIndex].addr)[]
 
   # {{{ Test data file creation
   block:
@@ -491,49 +464,47 @@ when isMainModule:
 
   # }}}
   # {{{ Test byte buffer creation
-  var
-    testByteBufBE: seq[byte]
-    testByteBufLE: seq[byte]
-    testByteBufBigBE: seq[byte]
-    testByteBufBigLE: seq[byte]
+  # Big endian
+  var testByteBufBE: seq[byte]
 
-  block:
-    testByteBufBE.add(cast[array[8, byte]](toBE(MagicValue64_1)))
-    testByteBufBE.add(cast[array[8, byte]](toBE(MagicValue64_2)))
-    testByteBufBE.add(cast[array[4, byte]](toBE(cast[uint32](TestFloat32))))
-    testByteBufBE.add(cast[array[8, byte]](toBE(cast[uint64](TestFloat64))))
+  testByteBufBE.add(cast[array[8, byte]](toBE(MagicValue64_1)))
+  testByteBufBE.add(cast[array[8, byte]](toBE(MagicValue64_2)))
+  testByteBufBE.add(cast[array[4, byte]](toBE(cast[uint32](TestFloat32))))
+  testByteBufBE.add(cast[array[8, byte]](toBE(cast[uint64](TestFloat64))))
 
-    for c in TestString:
-      testByteBufBE.add(c.byte)
+  for c in TestString:
+    testByteBufBE.add(c.byte)
 
-    testByteBufBE.add(TestChar.byte)
-    testByteBufBE.add(cast[seq[byte]](TestBooleans))
+  testByteBufBE.add(TestChar.byte)
+  testByteBufBE.add(cast[seq[byte]](TestBooleans))
 
-  block:
-    testByteBufLE.add(cast[array[8, byte]](toLE(MagicValue64_1)))
-    testByteBufLE.add(cast[array[8, byte]](toLE(MagicValue64_2)))
-    testByteBufLE.add(cast[array[4, byte]](toLE(cast[uint32](TestFloat32))))
-    testByteBufLE.add(cast[array[8, byte]](toLE(cast[uint64](TestFloat64))))
+  var testByteBufBigBE: seq[byte]
 
-    for c in TestString:
-      testByteBufLE.add(c.byte)
+  for i in 0..<ReadChunkSize*3:
+    testByteBufBigBE.add(
+      cast[array[8, byte]](
+        toBE(cast[uint64](MagicValue64_1 + i.uint64))))
 
-    testByteBufLE.add(TestChar.byte)
-    testByteBufLE.add(cast[seq[byte]](TestBooleans))
+  # Little endian
+  var testByteBufLE: seq[byte]
 
-  block:
-    var u64: uint64
-    for i in 0..<ReadChunkSize*3:
-      testByteBufBigBE.add(
-        cast[array[8, byte]](
-          toBE(cast[uint64](MagicValue64_1 + i.uint64))))
+  testByteBufLE.add(cast[array[8, byte]](toLE(MagicValue64_1)))
+  testByteBufLE.add(cast[array[8, byte]](toLE(MagicValue64_2)))
+  testByteBufLE.add(cast[array[4, byte]](toLE(cast[uint32](TestFloat32))))
+  testByteBufLE.add(cast[array[8, byte]](toLE(cast[uint64](TestFloat64))))
 
-  block:
-    var u64: uint64
-    for i in 0..<ReadChunkSize*3:
-      testByteBufBigLE.add(
-        cast[array[8, byte]](
-          toLE(cast[uint64](MagicValue64_1 + i.uint64))))
+  for c in TestString:
+    testByteBufLE.add(c.byte)
+
+  testByteBufLE.add(TestChar.byte)
+  testByteBufLE.add(cast[seq[byte]](TestBooleans))
+
+  var testByteBufBigLE: seq[byte]
+
+  for i in 0..<ReadChunkSize*3:
+    testByteBufBigLE.add(
+      cast[array[8, byte]](
+        toLE(cast[uint64](MagicValue64_1 + i.uint64))))
 
   # }}}
 
@@ -922,37 +893,56 @@ when isMainModule:
 
       var bs = newByteStream(bigEndian)
       tests_write(bs)
-      fs.close()
-#
-#      fs = newFileStream(TestFileBE, bigEndian)
-#      tests_read(fs)
-#      fs.close()
+
+      var bs2 = newByteStream(bs.data, bigEndian)
+      bs.close()
+      tests_read(bs2)
+      bs2.close()
 
     # }}}
     block: # {{{ write/openArray
+      const offs = 123
+
       var buf: array[WriteBufSize*3, uint64]
       for i in 0..buf.high:
         buf[i] = MagicValue64_1 + i.uint64
 
-      proc writeBufTest(numValues: Natural) =
-        const offs = 123
-        var fs = newFileStream(TestFile, bigEndian, fmWrite)
-        fs.write(buf, offs, numValues)
-        fs.close()
+      template writeTestStream(s: untyped, numValues: Natural) =
+        s.write(buf, offs, numValues)
 
+      template assertTestStream(s: untyped, numValues: Natural) =
         var readBuf: array[WriteBufSize*3, uint64]
-        fs = newFileStream(TestFile, bigEndian)
-        fs.read(readBuf, offs, numValues)
-        fs.close()
-
+        s.read(readBuf, offs, numValues)
         for i in 0..<numValues:
           assert readBuf[offs + i] == buf[offs + i]
 
-      writeBufTest(0)
-      writeBufTest(10)
-      writeBufTest(WriteBufSize)
-      writeBufTest(WriteBufSize * 2)
-      writeBufTest(WriteBufSize + 10)
+      proc writeBufTest_FileStream(numValues: Natural) =
+        var s = newFileStream(TestFile, bigEndian, fmWrite)
+        writeTestStream(s, numValues)
+        s.close()
+        s = newFileStream(TestFile, bigEndian)
+        assertTestStream(s, numValues)
+        s.close()
+
+      proc writeBufTest_ByteStream(numValues: Natural) =
+        var s = newByteStream(bigEndian)
+        writeTestStream(s, numValues)
+        var s2 = newByteStream(s.data, bigEndian)
+        s.close()
+        assertTestStream(s2, numValues)
+        s2.close()
+
+      writeBufTest_FileStream(0)
+      writeBufTest_FileStream(10)
+      writeBufTest_FileStream(WriteBufSize)
+      writeBufTest_FileStream(WriteBufSize * 2)
+      writeBufTest_FileStream(WriteBufSize + 10)
+
+      writeBufTest_ByteStream(0)
+      writeBufTest_ByteStream(10)
+      writeBufTest_ByteStream(WriteBufSize)
+      writeBufTest_ByteStream(WriteBufSize * 2)
+      writeBufTest_ByteStream(WriteBufSize + 10)
 
     # }}}
   # }}}
@@ -1349,6 +1339,14 @@ when isMainModule:
     assert fs.readBool() == false
     fs.close()
 
+  # }}}
+
+  # {{{ Test data file cleanup
+    removeFile(TestFileBE)
+    removeFile(TestFileLE)
+    removeFile(TestFileBigBE)
+    removeFile(TestFileBigLE)
+    removeFile(TestFile)
   # }}}
 
 # vim: et:ts=2:sw=2:fdm=marker
