@@ -230,65 +230,65 @@ when not defined(js):
 
   # }}}
 
-# {{{ Byte stream
+# {{{ Memory stream
 
 type
-  ByteStream* = ref object
+  MemStream* = ref object
     data*: seq[byte]
     pos: Natural
     endian: Endianness
     open: bool
 
-using bs: ByteStream
+using ms: MemStream
 
-proc newByteStream*(data: seq[byte], endian: Endianness): ByteStream =
+proc newMemStream*(data: seq[byte], endian: Endianness): MemStream =
   new(result)
   result.data = data
   result.endian = endian
   result.open = true
 
-proc newByteStream*(endian: Endianness): ByteStream =
-  newByteStream(@[], endian)
+proc newMemStream*(endian: Endianness): MemStream =
+  newMemStream(@[], endian)
 
-proc close*(bs) =
-  bs.data = @[]
-  bs.open = false
+proc close*(ms) =
+  ms.data = @[]
+  ms.open = false
 
-proc checkStreamOpen(bs) =
-  if not bs.open:
+proc checkStreamOpen(ms) =
+  if not ms.open:
     raise newException(IOError, "stream has been closed")
 
-proc flush*(bs) = bs.checkStreamOpen()
+proc flush*(ms) = ms.checkStreamOpen()
 
-proc atEnd*(bs): bool =
-  bs.checkStreamOpen()
-  bs.pos == bs.data.high
+proc atEnd*(ms): bool =
+  ms.checkStreamOpen()
+  ms.pos == ms.data.high
 
-proc endian*(bs): Endianness = bs.endian
+proc endian*(ms): Endianness = ms.endian
 
-proc `endian=`*(bs; endian: Endianness) = bs.endian = endian
+proc `endian=`*(ms; endian: Endianness) = ms.endian = endian
 
-proc getPosition*(bs): int64 =
-  bs.checkStreamOpen()
-  bs.pos.int64
+proc getPosition*(ms): int64 =
+  ms.checkStreamOpen()
+  ms.pos.int64
 
 
-proc setPosition*(bs; pos: int64, relativeTo: StreamSeekPos = sspSet) =
-  bs.checkStreamOpen()
+proc setPosition*(ms; pos: int64, relativeTo: StreamSeekPos = sspSet) =
+  ms.checkStreamOpen()
 
   let newPos = case relativeTo
   of sspSet: pos
-  of sspCur: bs.pos + pos
-  of sspEnd: bs.data.high + pos
+  of sspCur: ms.pos + pos
+  of sspEnd: ms.data.high + pos
 
   if newPos < 0:
     raise newException(IOError, fmt"cannot set stream position to {newPos}")
-  bs.pos = newPos
+  ms.pos = newPos
 
 
-proc read*[T: SomeNumber](bs; buf: var openArray[T],
+proc read*[T: SomeNumber](ms; buf: var openArray[T],
                           startIndex, numValues: Natural) =
-  bs.checkStreamOpen()
+  ms.checkStreamOpen()
   if numValues == 0: return
 
   if startIndex + numValues > buf.len:
@@ -298,95 +298,95 @@ proc read*[T: SomeNumber](bs; buf: var openArray[T],
       fmt"bufLen: {buf.len})")
 
   let numBytes = numValues * sizeof(T)
-  if numBytes > bs.data.len - bs.pos:
+  if numBytes > ms.data.len - ms.pos:
     raise newException(IOError,
       fmt"cannot read past the end of the from stream")
 
   for i in 0..<numValues:
-    let bufStart = bs.pos
+    let bufStart = ms.pos
     let bufEnd = bufStart + sizeof(T) - 1
-    let src = bs.data[bufStart..bufEnd]
+    let src = ms.data[bufStart..bufEnd]
     when sizeof(T) == 1:
-      buf[startIndex + i] = cast[T](fromBytes(uint8, src, bs.endian))
+      buf[startIndex + i] = cast[T](fromBytes(uint8, src, ms.endian))
     elif sizeof(T) == 2:
-      buf[startIndex + i] = cast[T](fromBytes(uint16, src, bs.endian))
+      buf[startIndex + i] = cast[T](fromBytes(uint16, src, ms.endian))
     elif sizeof(T) == 4:
-      buf[startIndex + i] = cast[T](fromBytes(uint32, src, bs.endian))
+      buf[startIndex + i] = cast[T](fromBytes(uint32, src, ms.endian))
     elif sizeof(T) == 8:
-      buf[startIndex + i] = cast[T](fromBytes(uint64, src, bs.endian))
-    bs.pos += sizeof(T)
+      buf[startIndex + i] = cast[T](fromBytes(uint64, src, ms.endian))
+    ms.pos += sizeof(T)
 
 
-proc read*(bs; T: typedesc[SomeNumber]): T =
+proc read*(ms; T: typedesc[SomeNumber]): T =
   var buf {.noinit.}: array[1, T]
-  bs.read(buf, 0, 1)
+  ms.read(buf, 0, 1)
   result = buf[0]
 
-proc readStr*(bs; length: Natural): string =
+proc readStr*(ms; length: Natural): string =
   result = newString(length)
-  bs.read(toOpenArrayByte(result, 0, result.high), 0, length)
+  ms.read(toOpenArrayByte(result, 0, result.high), 0, length)
 
-proc readChar*(bs): char =
-  result = cast[char](bs.read(byte))
+proc readChar*(ms): char =
+  result = cast[char](ms.read(byte))
 
-proc readBool*(bs): bool =
-  result = bs.read(byte) != 0
+proc readBool*(ms): bool =
+  result = ms.read(byte) != 0
 
 
-template doPeekByteStream(bs; body: untyped): untyped =
-  let pos = bs.getPosition()
-  defer: bs.setPosition(pos)
+template doPeekMemStream(ms; body: untyped): untyped =
+  let pos = ms.getPosition()
+  defer: ms.setPosition(pos)
   body
 
-proc peek*(bs; T: typedesc[SomeNumber]): T =
-  doPeekByteStream(bs): bs.read(T)
+proc peek*(ms; T: typedesc[SomeNumber]): T =
+  doPeekMemStream(ms): ms.read(T)
 
-proc peek*[T: SomeNumber](bs; buf: var openArray[T],
+proc peek*[T: SomeNumber](ms; buf: var openArray[T],
                           startIndex, numValues: Natural) =
-  doPeekByteStream(bs): bs.read(buf, startIndex, numValues)
+  doPeekMemStream(ms): ms.read(buf, startIndex, numValues)
 
-proc peekStr*(bs; length: Natural): string =
-  doPeekByteStream(bs): bs.readStr(length)
+proc peekStr*(ms; length: Natural): string =
+  doPeekMemStream(ms): ms.readStr(length)
 
-proc peekChar*(bs): char =
-  doPeekByteStream(bs): bs.readChar()
+proc peekChar*(ms): char =
+  doPeekMemStream(ms): ms.readChar()
 
-proc peekBool*(bs): bool =
-  doPeekByteStream(bs): bs.readBool()
+proc peekBool*(ms): bool =
+  doPeekMemStream(ms): ms.readBool()
 
-proc write*[T: SomeNumber](bs; buf: openArray[T],
+proc write*[T: SomeNumber](ms; buf: openArray[T],
                            startIndex, numValues: Natural) =
-  bs.checkStreamOpen()
+  ms.checkStreamOpen()
   if numValues == 0: return
 
-  let capNeeded = bs.pos + numValues*sizeof(T) - bs.data.len
+  let capNeeded = ms.pos + numValues*sizeof(T) - ms.data.len
   if capNeeded > 0:
-    bs.data.setLen(bs.data.len + capNeeded)
+    ms.data.setLen(ms.data.len + capNeeded)
 
   for i in startIndex..<startIndex + numValues:
     var bytes: array[sizeof(T), byte]
     when sizeof(T) == 1: bytes[0] = cast[byte](buf[i])
-    elif sizeof(T) == 2: bytes = toBytes(cast[uint16](buf[i]), bs.endian)
-    elif sizeof(T) == 4: bytes = toBytes(cast[uint32](buf[i]), bs.endian)
-    elif sizeof(T) == 8: bytes = toBytes(cast[uint64](buf[i]), bs.endian)
+    elif sizeof(T) == 2: bytes = toBytes(cast[uint16](buf[i]), ms.endian)
+    elif sizeof(T) == 4: bytes = toBytes(cast[uint32](buf[i]), ms.endian)
+    elif sizeof(T) == 8: bytes = toBytes(cast[uint64](buf[i]), ms.endian)
 
-    bs.data[bs.pos..<bs.pos+sizeof(T)] = bytes
-    inc(bs.pos, sizeof(T))
+    ms.data[ms.pos..<ms.pos+sizeof(T)] = bytes
+    inc(ms.pos, sizeof(T))
 
 
-proc write*[T: SomeNumber](bs; value: T) =
+proc write*[T: SomeNumber](ms; value: T) =
   var buf {.noinit.}: array[1, T]
   buf[0] = value
-  bs.write(buf, 0, 1)
+  ms.write(buf, 0, 1)
 
-proc writeStr*(bs; s: string) =
-  bs.write(toOpenArrayByte(s, 0, s.len-1), 0, s.len)
+proc writeStr*(ms; s: string) =
+  ms.write(toOpenArrayByte(s, 0, s.len-1), 0, s.len)
 
-proc writeChar*(bs; ch: char) =
-  bs.write(cast[byte](ch))
+proc writeChar*(ms; ch: char) =
+  ms.write(cast[byte](ch))
 
-proc writeBool*(bs; b: bool) =
-  bs.write(cast[byte](b))
+proc writeBool*(ms; b: bool) =
+  ms.write(cast[byte](b))
 
 # }}}
 
@@ -556,9 +556,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufBE, bigEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufBE, bigEndian)
+    tests(ms)
+    ms.close()
 
   # }}}
   block: # {{{ peek/func
@@ -601,9 +601,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufBE, bigEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufBE, bigEndian)
+    tests(ms)
+    ms.close()
 
   # }}}
   block: # {{{ read/openArray
@@ -690,9 +690,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufBE, bigEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufBE, bigEndian)
+    tests(ms)
+    ms.close()
 
     template readBufTest(s: untyped, numValues: Natural) =
       var buf: array[ReadChunkSize*3, uint64]
@@ -718,16 +718,16 @@ when isMainModule:
     readBufTest_FileStream(ReadChunkSize * 2)
     readBufTest_FileStream(ReadChunkSize + 10)
 
-    template readBufTest_ByteStream(numValues: Natural) =
-      var bs = newByteStream(testByteBufBigBE, bigEndian)
-      readBufTest(bs, numValues)
-      bs.close()
+    template readBufTest_MemStream(numValues: Natural) =
+      var ms = newMemStream(testByteBufBigBE, bigEndian)
+      readBufTest(ms, numValues)
+      ms.close()
 
-    readBufTest_ByteStream(0)
-    readBufTest_ByteStream(10)
-    readBufTest_ByteStream(ReadChunkSize)
-    readBufTest_ByteStream(ReadChunkSize * 2)
-    readBufTest_ByteStream(ReadChunkSize + 10)
+    readBufTest_MemStream(0)
+    readBufTest_MemStream(10)
+    readBufTest_MemStream(ReadChunkSize)
+    readBufTest_MemStream(ReadChunkSize * 2)
+    readBufTest_MemStream(ReadChunkSize + 10)
 
   # }}}
   block: # {{{ peek/openArray
@@ -809,9 +809,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufBE, bigEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufBE, bigEndian)
+    tests(ms)
+    ms.close()
 
     template readBufTest(s: untyped, numValues: Natural) =
       var buf: array[ReadChunkSize*3, uint64]
@@ -840,16 +840,16 @@ when isMainModule:
     readBufTest_FileStream(ReadChunkSize * 2)
     readBufTest_FileStream(ReadChunkSize + 10)
 
-    template readBufTest_ByteStream(numValues: Natural) =
-      var bs = newByteStream(testByteBufBigBE, bigEndian)
-      readBufTest(bs, numValues)
-      bs.close()
+    template readBufTest_MemStream(numValues: Natural) =
+      var ms = newMemStream(testByteBufBigBE, bigEndian)
+      readBufTest(ms, numValues)
+      ms.close()
 
-    readBufTest_ByteStream(0)
-    readBufTest_ByteStream(10)
-    readBufTest_ByteStream(ReadChunkSize)
-    readBufTest_ByteStream(ReadChunkSize * 2)
-    readBufTest_ByteStream(ReadChunkSize + 10)
+    readBufTest_MemStream(0)
+    readBufTest_MemStream(10)
+    readBufTest_MemStream(ReadChunkSize)
+    readBufTest_MemStream(ReadChunkSize * 2)
+    readBufTest_MemStream(ReadChunkSize + 10)
 
   # }}}
   block: # {{{ write/func
@@ -893,13 +893,13 @@ when isMainModule:
     tests_read(fs)
     fs.close()
 
-    var bs = newByteStream(bigEndian)
-    tests_write(bs)
+    var ms = newMemStream(bigEndian)
+    tests_write(ms)
 
-    var bs2 = newByteStream(bs.data, bigEndian)
-    bs.close()
-    tests_read(bs2)
-    bs2.close()
+    var ms2 = newMemStream(ms.data, bigEndian)
+    ms.close()
+    tests_read(ms2)
+    ms2.close()
 
   # }}}
   block: # {{{ write/openArray
@@ -926,10 +926,10 @@ when isMainModule:
       assertTestStream(s, numValues)
       s.close()
 
-    proc writeBufTest_ByteStream(numValues: Natural) =
-      var s = newByteStream(bigEndian)
+    proc writeBufTest_MemStream(numValues: Natural) =
+      var s = newMemStream(bigEndian)
       writeTestStream(s, numValues)
-      var s2 = newByteStream(s.data, bigEndian)
+      var s2 = newMemStream(s.data, bigEndian)
       s.close()
       assertTestStream(s2, numValues)
       s2.close()
@@ -940,11 +940,11 @@ when isMainModule:
     writeBufTest_FileStream(WriteBufSize * 2)
     writeBufTest_FileStream(WriteBufSize + 10)
 
-    writeBufTest_ByteStream(0)
-    writeBufTest_ByteStream(10)
-    writeBufTest_ByteStream(WriteBufSize)
-    writeBufTest_ByteStream(WriteBufSize * 2)
-    writeBufTest_ByteStream(WriteBufSize + 10)
+    writeBufTest_MemStream(0)
+    writeBufTest_MemStream(10)
+    writeBufTest_MemStream(WriteBufSize)
+    writeBufTest_MemStream(WriteBufSize * 2)
+    writeBufTest_MemStream(WriteBufSize + 10)
 
   # }}}
   # }}}
@@ -994,9 +994,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufLE, littleEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufLE, littleEndian)
+    tests(ms)
+    ms.close()
 
   # }}}
   block: # {{{ peek/func
@@ -1039,9 +1039,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufLE, littleEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufLE, littleEndian)
+    tests(ms)
+    ms.close()
 
   # }}}
   block: # {{{ read/openArray
@@ -1128,9 +1128,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufLE, littleEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufLE, littleEndian)
+    tests(ms)
+    ms.close()
 
     template readBufTest(s: untyped, numValues: Natural) =
       var buf: array[ReadChunkSize*3, uint64]
@@ -1156,16 +1156,16 @@ when isMainModule:
     readBufTest_FileStream(ReadChunkSize * 2)
     readBufTest_FileStream(ReadChunkSize + 10)
 
-    template readBufTest_ByteStream(numValues: Natural) =
-      var bs = newByteStream(testByteBufBigLE, littleEndian)
-      readBufTest(bs, numValues)
-      bs.close()
+    template readBufTest_MemStream(numValues: Natural) =
+      var ms = newMemStream(testByteBufBigLE, littleEndian)
+      readBufTest(ms, numValues)
+      ms.close()
 
-    readBufTest_ByteStream(0)
-    readBufTest_ByteStream(10)
-    readBufTest_ByteStream(ReadChunkSize)
-    readBufTest_ByteStream(ReadChunkSize * 2)
-    readBufTest_ByteStream(ReadChunkSize + 10)
+    readBufTest_MemStream(0)
+    readBufTest_MemStream(10)
+    readBufTest_MemStream(ReadChunkSize)
+    readBufTest_MemStream(ReadChunkSize * 2)
+    readBufTest_MemStream(ReadChunkSize + 10)
 
   # }}}
   block: # {{{ peek/openArray
@@ -1247,9 +1247,9 @@ when isMainModule:
     tests(fs)
     fs.close()
 
-    var bs = newByteStream(testByteBufLE, littleEndian)
-    tests(bs)
-    bs.close()
+    var ms = newMemStream(testByteBufLE, littleEndian)
+    tests(ms)
+    ms.close()
 
     template readBufTest(s: untyped, numValues: Natural) =
       var buf: array[ReadChunkSize*3, uint64]
@@ -1278,16 +1278,16 @@ when isMainModule:
     readBufTest_FileStream(ReadChunkSize * 2)
     readBufTest_FileStream(ReadChunkSize + 10)
 
-    template readBufTest_ByteStream(numValues: Natural) =
-      var bs = newByteStream(testByteBufBigLE, littleEndian)
-      readBufTest(bs, numValues)
-      bs.close()
+    template readBufTest_MemStream(numValues: Natural) =
+      var ms = newMemStream(testByteBufBigLE, littleEndian)
+      readBufTest(ms, numValues)
+      ms.close()
 
-    readBufTest_ByteStream(0)
-    readBufTest_ByteStream(10)
-    readBufTest_ByteStream(ReadChunkSize)
-    readBufTest_ByteStream(ReadChunkSize * 2)
-    readBufTest_ByteStream(ReadChunkSize + 10)
+    readBufTest_MemStream(0)
+    readBufTest_MemStream(10)
+    readBufTest_MemStream(ReadChunkSize)
+    readBufTest_MemStream(ReadChunkSize * 2)
+    readBufTest_MemStream(ReadChunkSize + 10)
 
   # }}}
   block: # {{{ write/func
@@ -1331,13 +1331,13 @@ when isMainModule:
     tests_read(fs)
     fs.close()
 
-    var bs = newByteStream(littleEndian)
-    tests_write(bs)
+    var ms = newMemStream(littleEndian)
+    tests_write(ms)
 
-    var bs2 = newByteStream(bs.data, littleEndian)
-    bs.close()
-    tests_read(bs2)
-    bs2.close()
+    var ms2 = newMemStream(ms.data, littleEndian)
+    ms.close()
+    tests_read(ms2)
+    ms2.close()
 
   # }}}
   block: # {{{ write/openArray
@@ -1364,10 +1364,10 @@ when isMainModule:
       assertTestStream(s, numValues)
       s.close()
 
-    proc writeBufTest_ByteStream(numValues: Natural) =
-      var s = newByteStream(littleEndian)
+    proc writeBufTest_MemStream(numValues: Natural) =
+      var s = newMemStream(littleEndian)
       writeTestStream(s, numValues)
-      var s2 = newByteStream(s.data, littleEndian)
+      var s2 = newMemStream(s.data, littleEndian)
       s.close()
       assertTestStream(s2, numValues)
       s2.close()
@@ -1378,11 +1378,11 @@ when isMainModule:
     writeBufTest_FileStream(WriteBufSize * 2)
     writeBufTest_FileStream(WriteBufSize + 10)
 
-    writeBufTest_ByteStream(0)
-    writeBufTest_ByteStream(10)
-    writeBufTest_ByteStream(WriteBufSize)
-    writeBufTest_ByteStream(WriteBufSize * 2)
-    writeBufTest_ByteStream(WriteBufSize + 10)
+    writeBufTest_MemStream(0)
+    writeBufTest_MemStream(10)
+    writeBufTest_MemStream(WriteBufSize)
+    writeBufTest_MemStream(WriteBufSize * 2)
+    writeBufTest_MemStream(WriteBufSize + 10)
   # }}}
 # }}}
   # {{{ Common / Mixed endian
@@ -1434,59 +1434,59 @@ when isMainModule:
     fs = newFileStream(TestFileLE, bigEndian)
     fs.close()
 
-    var bs = newByteStream(bigEndian)
-    writeTestStream(bs)
-    var bs2 = newByteStream(bs.data, bigEndian)
-    bs.close()
-    bs2.close()
+    var ms = newMemStream(bigEndian)
+    writeTestStream(ms)
+    var ms2 = newMemStream(ms.data, bigEndian)
+    ms.close()
+    ms2.close()
 
   # }}}
-  # {{{ Byte stream
+  # {{{ Mem stream
   block: # seek after end of stream & write
-    var bs = newByteStream(littleEndian)
-    bs.setPosition(2)
-    bs.write(1'u8)
-    assert bs.data == @[0'u8, 0'u8, 1'u8]
-    assert bs.getPosition() == 3
+    var ms = newMemStream(littleEndian)
+    ms.setPosition(2)
+    ms.write(1'u8)
+    assert ms.data == @[0'u8, 0'u8, 1'u8]
+    assert ms.getPosition() == 3
 
   block: # seek modes (successes)
-    var bs = newByteStream(@[1'u8, 2'u8, 3'u8, 4'u8], littleEndian)
-    bs.setPosition(1)
-    assert bs.read(uint8) == 2'u8
+    var ms = newMemStream(@[1'u8, 2'u8, 3'u8, 4'u8], littleEndian)
+    ms.setPosition(1)
+    assert ms.read(uint8) == 2'u8
 
-    bs.setPosition(0, sspEnd)
-    assert bs.read(uint8) == 4'u8
+    ms.setPosition(0, sspEnd)
+    assert ms.read(uint8) == 4'u8
 
-    bs.setPosition(10, sspEnd)
-    assert bs.getPosition() == 13
+    ms.setPosition(10, sspEnd)
+    assert ms.getPosition() == 13
 
-    bs.setPosition(-1, sspEnd)
-    assert bs.getPosition() == 2
-    assert bs.read(uint8) == 3'u8
-    assert bs.getPosition() == 3
+    ms.setPosition(-1, sspEnd)
+    assert ms.getPosition() == 2
+    assert ms.read(uint8) == 3'u8
+    assert ms.getPosition() == 3
 
-    bs.setPosition(-2, sspCur)
-    assert bs.getPosition() == 1
-    assert bs.read(uint8) == 2'u8
-    assert bs.getPosition() == 2
+    ms.setPosition(-2, sspCur)
+    assert ms.getPosition() == 1
+    assert ms.read(uint8) == 2'u8
+    assert ms.getPosition() == 2
 
-    bs.setPosition(1, sspCur)
-    assert bs.read(uint8) == 4'u8
+    ms.setPosition(1, sspCur)
+    assert ms.read(uint8) == 4'u8
 
   block: # seek modes (failures)
     let data = @[1'u8, 2'u8, 3'u8, 4'u8]
     doAssertRaises(IOError):
-      var bs = newByteStream(data, littleEndian)
-      bs.setPosition(-1)
+      var ms = newMemStream(data, littleEndian)
+      ms.setPosition(-1)
 
     doAssertRaises(IOError):
-      var bs = newByteStream(data, littleEndian)
-      bs.setPosition(-10, sspEnd)
+      var ms = newMemStream(data, littleEndian)
+      ms.setPosition(-10, sspEnd)
 
     doAssertRaises(IOError):
-      var bs = newByteStream(data, littleEndian)
-      bs.setPosition(50)
-      bs.setPosition(-60, sspCur)
+      var ms = newMemStream(data, littleEndian)
+      ms.setPosition(50)
+      ms.setPosition(-60, sspCur)
 
   # }}}
   # {{{ Test data file cleanup
