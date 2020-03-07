@@ -1384,47 +1384,58 @@ when isMainModule:
     # }}}
   # }}}
   block: # {{{ Mixed endian
+    template writeTestStream(s: untyped) =
+      s.write(0xde'i8)
+      s.write(0xad'u8)
+      s.write(0xdead'i16)
+      s.write(0xbeef'u16)
+
+      s.endian = littleEndian
+      s.write(0xdeadbeef'i32)
+      s.write(0xcafebabe'u32)
+      s.write(0xdeadbeefcafebabe'i64)
+      s.write(0xfeedface0d15ea5e'u64)
+
+      s.endian = bigEndian
+      s.write(TestFloat32)
+      s.write(TestFloat64)
+      s.writeStr(TestString)
+      s.writeChar(TestChar)
+      s.writeBool(true)
+      s.writeBool(false)
+
+    template readTestStream(s: untyped) =
+      assert s.read(int8)    == 0xde'i8
+      assert s.read(uint8)   == 0xad'u8
+      assert s.read(int16)   == 0xdead'i16
+      assert s.read(uint16)  == 0xbeef'u16
+
+      s.endian = littleEndian
+      assert s.read(int32)   == 0xdeadbeef'i32
+      assert s.read(uint32)  == 0xcafebabe'u32
+      assert s.read(int64)   == 0xdeadbeefcafebabe'i64
+      assert s.read(uint64)  == 0xfeedface0d15ea5e'u64
+
+      s.endian = bigEndian
+      assert s.read(float32) == TestFloat32
+      assert s.read(float64) == TestFloat64
+      assert s.readStr(TestString.len) == TestString
+      assert s.readChar() == TestChar
+      assert s.readBool() == true
+      assert s.readBool() == false
+
     var fs = newFileStream(TestFileLE, bigEndian, fmWrite)
-    fs.write(0xde'i8)
-    fs.write(0xad'u8)
-    fs.write(0xdead'i16)
-    fs.write(0xbeef'u16)
-
-    fs.endian = littleEndian
-    fs.write(0xdeadbeef'i32)
-    fs.write(0xcafebabe'u32)
-    fs.write(0xdeadbeefcafebabe'i64)
-    fs.write(0xfeedface0d15ea5e'u64)
-
-    fs.endian = bigEndian
-    fs.write(TestFloat32)
-    fs.write(TestFloat64)
-    fs.writeStr(TestString)
-    fs.writeChar(TestChar)
-    fs.writeBool(true)
-    fs.writeBool(false)
+    writeTestStream(fs)
     fs.close()
 
     fs = newFileStream(TestFileLE, bigEndian)
-    assert fs.read(int8)    == 0xde'i8
-    assert fs.read(uint8)   == 0xad'u8
-    assert fs.read(int16)   == 0xdead'i16
-    assert fs.read(uint16)  == 0xbeef'u16
-
-    fs.endian = littleEndian
-    assert fs.read(int32)   == 0xdeadbeef'i32
-    assert fs.read(uint32)  == 0xcafebabe'u32
-    assert fs.read(int64)   == 0xdeadbeefcafebabe'i64
-    assert fs.read(uint64)  == 0xfeedface0d15ea5e'u64
-
-    fs.endian = bigEndian
-    assert fs.read(float32) == TestFloat32
-    assert fs.read(float64) == TestFloat64
-    assert fs.readStr(TestString.len) == TestString
-    assert fs.readChar() == TestChar
-    assert fs.readBool() == true
-    assert fs.readBool() == false
     fs.close()
+
+    var bs = newByteStream(bigEndian)
+    writeTestStream(bs)
+    var bs2 = newByteStream(bs.data, bigEndian)
+    bs.close()
+    bs2.close()
 
   # }}}
 
