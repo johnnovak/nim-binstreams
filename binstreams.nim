@@ -1130,7 +1130,40 @@ when isMainModule:
       tests(bs)
       bs.close()
 
-      # TODO readbuf tests
+      template readBufTest(s: untyped, numValues: Natural) =
+        var buf: array[ReadChunkSize*3, uint64]
+        let offs = 123
+
+        s.read(buf, offs, numValues)
+
+        for i in 0..<offs:
+          assert buf[i] == 0
+        for i in 0..<numValues:
+          assert buf[offs + i] == MagicValue64_1 + i.uint64
+        for i in offs+numValues..buf.high:
+          assert buf[i] == 0
+
+      template readBufTest_FileStream(numValues: Natural) =
+        fs = newFileStream(TestFileBigLE, littleEndian)
+        readBufTest(fs, numValues)
+        fs.close()
+
+      readBufTest_FileStream(0)
+      readBufTest_FileStream(10)
+      readBufTest_FileStream(ReadChunkSize)
+      readBufTest_FileStream(ReadChunkSize * 2)
+      readBufTest_FileStream(ReadChunkSize + 10)
+
+      template readBufTest_ByteStream(numValues: Natural) =
+        var bs = newByteStream(testByteBufBigLE, littleEndian)
+        readBufTest(bs, numValues)
+        bs.close()
+
+      readBufTest_ByteStream(0)
+      readBufTest_ByteStream(10)
+      readBufTest_ByteStream(ReadChunkSize)
+      readBufTest_ByteStream(ReadChunkSize * 2)
+      readBufTest_ByteStream(ReadChunkSize + 10)
 
     # }}}
     block: # {{{ peek/openArray
@@ -1216,7 +1249,43 @@ when isMainModule:
       tests(bs)
       bs.close()
 
-      # TODO readbuf tests
+      template readBufTest(s: untyped, numValues: Natural) =
+        var buf: array[ReadChunkSize*3, uint64]
+        let offs = 123
+
+        for n in 0..3:
+          s.peek(buf, offs, numValues)
+
+          for i in 0..<offs:
+            assert buf[i] == 0
+          for i in 0..<numValues:
+            assert buf[offs + i] == MagicValue64_1 + i.uint64
+          for i in offs+numValues..buf.high:
+            assert buf[i] == 0
+
+        assert s.getPosition() == 0
+
+      template readBufTest_FileStream(numValues: Natural) =
+        var fs = newFileStream(TestFileBigLE, littleEndian)
+        readBufTest(fs, numValues)
+        fs.close()
+
+      readBufTest_FileStream(0)
+      readBufTest_FileStream(10)
+      readBufTest_FileStream(ReadChunkSize)
+      readBufTest_FileStream(ReadChunkSize * 2)
+      readBufTest_FileStream(ReadChunkSize + 10)
+
+      template readBufTest_ByteStream(numValues: Natural) =
+        var bs = newByteStream(testByteBufBigLE, littleEndian)
+        readBufTest(bs, numValues)
+        bs.close()
+
+      readBufTest_ByteStream(0)
+      readBufTest_ByteStream(10)
+      readBufTest_ByteStream(ReadChunkSize)
+      readBufTest_ByteStream(ReadChunkSize * 2)
+      readBufTest_ByteStream(ReadChunkSize + 10)
 
     # }}}
     block: # {{{ write/func
@@ -1260,40 +1329,58 @@ when isMainModule:
       tests_read(fs)
       fs.close()
 
-#      var bs = newByteStream(bigEndian)
-#      tests_write(bs)
-#      fs.close()
-#
-#      fs = newFileStream(TestFileBE, bigEndian)
-#      tests_read(fs)
-#      fs.close()
+      var bs = newByteStream(littleEndian)
+      tests_write(bs)
+
+      var bs2 = newByteStream(bs.data, littleEndian)
+      bs.close()
+      tests_read(bs2)
+      bs2.close()
 
     # }}}
     block: # {{{ write/openArray
+      const offs = 123
+
       var buf: array[WriteBufSize*3, uint64]
       for i in 0..buf.high:
         buf[i] = MagicValue64_1 + i.uint64
 
-      proc writeBufTest(numValues: Natural) =
-        const offs = 123
-        var fs = newFileStream(TestFile, littleEndian, fmWrite)
-        fs.write(buf, offs, numValues)
-        fs.close()
+      template writeTestStream(s: untyped, numValues: Natural) =
+        s.write(buf, offs, numValues)
 
+      template assertTestStream(s: untyped, numValues: Natural) =
         var readBuf: array[WriteBufSize*3, uint64]
-        fs = newFileStream(TestFile, littleEndian)
-        fs.read(readBuf, offs, numValues)
-        fs.close()
-
+        s.read(readBuf, offs, numValues)
         for i in 0..<numValues:
           assert readBuf[offs + i] == buf[offs + i]
 
-      writeBufTest(0)
-      writeBufTest(10)
-      writeBufTest(WriteBufSize)
-      writeBufTest(WriteBufSize * 2)
-      writeBufTest(WriteBufSize + 10)
+      proc writeBufTest_FileStream(numValues: Natural) =
+        var s = newFileStream(TestFile, littleEndian, fmWrite)
+        writeTestStream(s, numValues)
+        s.close()
+        s = newFileStream(TestFile, littleEndian)
+        assertTestStream(s, numValues)
+        s.close()
 
+      proc writeBufTest_ByteStream(numValues: Natural) =
+        var s = newByteStream(littleEndian)
+        writeTestStream(s, numValues)
+        var s2 = newByteStream(s.data, littleEndian)
+        s.close()
+        assertTestStream(s2, numValues)
+        s2.close()
+
+      writeBufTest_FileStream(0)
+      writeBufTest_FileStream(10)
+      writeBufTest_FileStream(WriteBufSize)
+      writeBufTest_FileStream(WriteBufSize * 2)
+      writeBufTest_FileStream(WriteBufSize + 10)
+
+      writeBufTest_ByteStream(0)
+      writeBufTest_ByteStream(10)
+      writeBufTest_ByteStream(WriteBufSize)
+      writeBufTest_ByteStream(WriteBufSize * 2)
+      writeBufTest_ByteStream(WriteBufSize + 10)
     # }}}
   # }}}
   block: # {{{ Mixed endian
