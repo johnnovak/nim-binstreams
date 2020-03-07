@@ -53,7 +53,6 @@ when not defined(js):
       raise newException(IOError,
         fmt"cannot open file '{filename}' using mode {mode}")
 
-  # TODO check closed?
   proc close*(fs) =
     if fs == nil:
       raise newException(IOError,
@@ -183,7 +182,6 @@ when not defined(js):
       let valuesToWrite = min(valuesLeft, writeBuf.len)
       for i in 0..<valuesToWrite:
         when sizeof(T) == 1:
-          # TODO
           writeBuf[i] = cast[T](swapBytes(cast[uint8](buf[bufIndex])))
         elif sizeof(T) == 2:
           writeBuf[i] = cast[T](swapBytes(cast[uint16](buf[bufIndex])))
@@ -273,15 +271,18 @@ when not defined(js):
     bs.checkStreamOpen()
     bs.pos.int64
 
+
   proc setPosition*(bs; pos: int64, relativeTo: StreamSeekPos = sspSet) =
     bs.checkStreamOpen()
-    case relativeTo
-    of sspSet: bs.pos = pos
-    of sspCur: bs.pos = bs.pos + pos
-    of sspEnd: bs.pos = bs.data.high - pos  # TODO min/max?
 
-  proc raiseReadError(bs) =
-    raise newException(IOError, fmt"cannot read from stream")
+    let newPos = case relativeTo
+    of sspSet: pos
+    of sspCur: bs.pos + pos
+    of sspEnd: bs.data.high + pos
+
+    if newPos < 0:
+      raise newException(IOError, fmt"cannot set stream position to {newPos}")
+    bs.pos = newPos
 
 
   proc read*[T: SomeNumber](bs; buf: var openArray[T],
@@ -295,16 +296,15 @@ when not defined(js):
         fmt"(startIndex: {startIndex}, numValues: {numValues}, " &
         fmt"bufLen: {buf.len})")
 
-    let numBytes = numValues * sizeof(T)  # TODO negative numbers?
+    let numBytes = numValues * sizeof(T)
     if numBytes > bs.data.len - bs.pos:
-      bs.raiseReadError()
+      raise newException(IOError, fmt"cannot read from stream")
 
     for i in 0..<numValues:
       let bufStart = bs.pos
       let bufEnd = bufStart + sizeof(T) - 1
       let src = bs.data[bufStart..bufEnd]
       when sizeof(T) == 1:
-        # TODO
         buf[startIndex + i] = cast[T](fromBytes(uint8, src, bs.endian))
       elif sizeof(T) == 2:
         buf[startIndex + i] = cast[T](fromBytes(uint16, src, bs.endian))
@@ -312,7 +312,7 @@ when not defined(js):
         buf[startIndex + i] = cast[T](fromBytes(uint32, src, bs.endian))
       elif sizeof(T) == 8:
         buf[startIndex + i] = cast[T](fromBytes(uint64, src, bs.endian))
-      bs.pos += sizeof(T) # TODO what does file do if there's failure?
+      bs.pos += sizeof(T)
 
 
   proc read*(bs; T: typedesc[SomeNumber]): T =
@@ -508,7 +508,7 @@ when isMainModule:
 
   # }}}
 
-  block: # {{{ Big endian
+  block: # {{{ Common / Big endian
     block: # {{{ read/func
       template tests(s: untyped) =
         assert s.read(int8)   == 0xde'i8
@@ -946,7 +946,7 @@ when isMainModule:
 
     # }}}
   # }}}
-  block: # {{{ Little endian
+  block: # {{{ Common / Little endian
     block: # {{{ read/func
       template tests(s: untyped) =
         assert s.read(int8)   == 0xbe'i8
@@ -1383,7 +1383,7 @@ when isMainModule:
       writeBufTest_ByteStream(WriteBufSize + 10)
     # }}}
   # }}}
-  block: # {{{ Mixed endian
+  block: # {{{ Common / Mixed endian
     template writeTestStream(s: untyped) =
       s.write(0xde'i8)
       s.write(0xad'u8)
