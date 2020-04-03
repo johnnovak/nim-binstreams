@@ -119,6 +119,8 @@ when not defined(js):
   proc read*[T: SomeNumber](fs; buf: var openArray[T],
                             startIndex, numValues: Natural) =
     fs.checkStreamOpen()
+    if numValues == 0: return
+
     if system.cpuEndian == fs.endian:
       assert startIndex + numValues <= buf.len
       let
@@ -203,6 +205,8 @@ when not defined(js):
   proc write*[T: SomeNumber](fs; buf: openArray[T],
                              startIndex, numValues: Natural) =
     fs.checkStreamOpen()
+    if numValues == 0: return
+
     if system.cpuEndian == fs.endian:
       assert startIndex + numValues <= buf.len
       let
@@ -864,6 +868,7 @@ when isMainModule:
       s.write(0xfeedface0d15ea5e'u64)
       s.write(TestFloat32)
       s.write(TestFloat64)
+      s.writeStr("")
       s.writeStr(TestString)
       s.writeChar(TestChar)
       s.writeBool(true)
@@ -880,6 +885,7 @@ when isMainModule:
       assert s.read(uint64)  == 0xfeedface0d15ea5e'u64
       assert s.read(float32) == TestFloat32
       assert s.read(float64) == TestFloat64
+      assert s.readStr(0) == ""
       assert s.readStr(TestString.len) == TestString
       assert s.readChar() == TestChar
       assert s.readBool() == true
@@ -1302,6 +1308,7 @@ when isMainModule:
       s.write(0xfeedface0d15ea5e'u64)
       s.write(TestFloat32)
       s.write(TestFloat64)
+      s.writeStr("")
       s.writeStr(TestString)
       s.writeChar(TestChar)
       s.writeBool(true)
@@ -1318,6 +1325,7 @@ when isMainModule:
       assert s.read(uint64)  == 0xfeedface0d15ea5e'u64
       assert s.read(float32) == TestFloat32
       assert s.read(float64) == TestFloat64
+      assert s.readStr(0) == ""
       assert s.readStr(TestString.len) == TestString
       assert s.readChar() == TestChar
       assert s.readBool() == true
@@ -1402,6 +1410,7 @@ when isMainModule:
       s.endian = bigEndian
       s.write(TestFloat32)
       s.write(TestFloat64)
+      s.writeStr("")
       s.writeStr(TestString)
       s.writeChar(TestChar)
       s.writeBool(true)
@@ -1422,6 +1431,7 @@ when isMainModule:
       s.endian = bigEndian
       assert s.read(float32) == TestFloat32
       assert s.read(float64) == TestFloat64
+      assert s.readStr(0) == ""
       assert s.readStr(TestString.len) == TestString
       assert s.readChar() == TestChar
       assert s.readBool() == true
@@ -1504,7 +1514,6 @@ when isMainModule:
 #   - read past end of stream
 #   - operations on uninitialised streams
 #   - op on closed streams
-#
 #
 # TODO other stuff
 #
