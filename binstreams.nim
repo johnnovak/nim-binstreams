@@ -22,6 +22,7 @@ when not defined(js):
       f: File
       filename: string
       endian: Endianness
+      pos: int64
 
   using fs: FileStream
 
@@ -79,13 +80,14 @@ when not defined(js):
 
   proc `endian=`*(fs; endian: Endianness) = fs.endian = endian
 
-  proc getPosition*(fs): int64 =
+  proc getPosition*(fs): int64 {.inline.} =
     fs.checkStreamOpen()
-    getFilePos(fs.f).int64
+    result = fs.pos
 
   proc setPosition*(fs; pos: int64, relativeTo: StreamSeekPos = sspSet) =
     fs.checkStreamOpen()
     setFilePos(fs.f, pos, toFileSeekPos(relativeTo))
+    fs.pos = getFilePos(fs.f).int64
 
   proc raiseReadError(fs) =
     raise newException(IOError,
@@ -106,6 +108,7 @@ when not defined(js):
 
       if bytesRead != bytesToRead:
         fs.raiseReadError()
+      inc(fs.pos, bytesRead)
       dec(valuesLeft, valuesRead)
 
       for i in bufIndex..<bufIndex + valuesRead:
@@ -126,8 +129,10 @@ when not defined(js):
       let
         bytesToRead = numValues * sizeof(T)
         bytesRead = readBuffer(fs.f, buf[startIndex].addr, bytesToRead)
+
       if bytesRead != bytesToRead:
         fs.raiseReadError()
+      inc(fs.pos, bytesRead)
     else:
       fs.readAndSwap(buf, startIndex, numValues)
 
@@ -199,6 +204,7 @@ when not defined(js):
 
       if bytesWritten != bytesToWrite:
         raiseWriteError(fs)
+      inc(fs.pos, bytesWritten)
       dec(valuesLeft, valuesToWrite)
 
 
@@ -215,6 +221,7 @@ when not defined(js):
                                    bytesToWrite)
       if bytesWritten != bytesToWrite:
         raiseWriteError(fs)
+      inc(fs.pos, bytesWritten)
     else:
       fs.swapAndWrite(buf, startIndex, numValues)
 
