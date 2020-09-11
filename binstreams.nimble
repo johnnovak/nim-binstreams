@@ -9,9 +9,12 @@ skipDirs = @["doc"]
 
 # Dependencies
 
-requires "nim >= 1.0.6", "stew"
+requires "nim >= 1.2.6", "stew"
 
 # Tasks
+
+task tests, "Run all tests":
+  exec "nim c -r tests/tests"
 
 task docgen, "Generate HTML documentation":
   exec "nim doc -o:doc/binstreams.html binstreams"
