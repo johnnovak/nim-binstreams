@@ -37,14 +37,14 @@ fs.writeStr("some UTF-8 string")
 fs.writeChar('X')
 fs.writeBool(true)
 
-# You can set the file position at any time.
+# The file position can be changed at any time.
 fs.setPosition(0)
 fs.write(88'u8)
 
 fs.close()
 
 
-# We can also create a new stream from a valid file handle.
+# It is possible to create a new stream from a valid file handle.
 var f = open("outfile")
 fs = newFileStream(f, bigEndian)
 
@@ -56,7 +56,7 @@ fs.endian = littleEndian
 echo fs.read(int16)
 echo fs.read(float32)
 
-# Helpers for strings, chars and bools.
+# Helpers for strings, chars and bools
 echo fs.readStr(10)
 echo fs.readChar()
 echo fs.readBool()
