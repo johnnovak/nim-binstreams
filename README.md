@@ -1,12 +1,28 @@
 # nim-binstreams
 
-**Work in progress, not ready for public use yet!**
+**nim-binstreams** is a no-dependencies Nim library that provides endianness
+aware binary streams. It is a wrapper over the standard `io` module, and it
+uses `stew/endians2` for endianness conversions (source included), so it
+should be reasonably fast.
 
-## Dependencies
+Main features:
 
-* `endians2` from [status/stew](https://github.com/status-im/nim-stew)
+* Both file and memory buffer backed streams are supported through a single interface to make it easy to switch between implementations
+* Possibility to switch the endianness of a stream at any time
+* Mixed read/write streams are supported
+* Generics friendly API
 
-## Quickstart
+## Installation
+
+**nim-binstreams** can be installed via Nimble:
+
+    nimble install binstreams
+
+## Usage
+
+The below example should give you a fairly good idea of the basic usage of the
+library. Please refer to the API documentation for further details.
+
 
 ```nim
 import binstreams
@@ -15,9 +31,9 @@ import binstreams
 # File modes work exactly like with `open`.
 var fs = newFileStream("outfile", bigEndian, fmWrite)
 
-# There's just a generic `write()` proc to write single values. The width of
-# the value is determined from the type and endianness conversions are handled
-# automatically, if required.
+# There's just a generic `write()` proc to write single values.
+# The width of the value is determined from the type.
+# Endianness conversions are handled automatically, if required.
 fs.write(3'i8)
 fs.write(42'i16)
 fs.write(0xcafe'u16)
