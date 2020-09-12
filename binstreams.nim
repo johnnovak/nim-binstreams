@@ -133,7 +133,7 @@ when not defined(js):
       fmt"cannot read from stream, filename: '{fs.filename}'")
 
   proc readAndSwap[T: SomeNumber](fs: FileStream, buf: var openArray[T],
-                                  startIndex, numValues: Natural) =
+                                  startIndex, numValues: Natural) {.inline.} =
     var
       valuesLeft = numValues
       bufIndex = startIndex
@@ -167,7 +167,7 @@ when not defined(js):
     fs.checkStreamOpen()
     if numValues == 0: return
 
-    if system.cpuEndian == fs.endian:
+    if system.cpuEndian == fs.endian or sizeof(T) == 1:
       assert startIndex + numValues <= buf.len
       let
         bytesToRead = numValues * sizeof(T)

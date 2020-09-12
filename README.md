@@ -2,15 +2,17 @@
 
 **nim-binstreams** is a no-dependencies Nim library that provides endianness
 aware binary streams. It is a wrapper over the standard `io` module, and it
-uses `stew/endians2` for endianness conversions (source included, no need to
-install anything), so it should be reasonably fast.
+uses [stew/endians2](https://github.com/status-im/nim-stew/blob/master/stew/endians2.nim)
+for endianness conversions (included in the project), so it should be
+reasonably fast.
 
 Main features:
 
-* Both file and memory buffer backed streams are supported through a single interface to make it easy to switch between implementations
-* Possibility to switch the endianness of a stream at any time
+* Support for file and memory buffer backed streams through a single interface
+* Possibility to switch the endianness of a stream on the fly
 * Mixed read/write streams are supported
 * Generics friendly API
+
 
 ## Installation
 
@@ -18,10 +20,11 @@ Main features:
 
     nimble install binstreams
 
+
 ## Usage
 
-The below example should give you a fairly good idea of the basic usage of the
-library. Please refer to the API documentation for further details.
+The below example should give you a fairly good idea of the basic usage.
+Please refer to the API documentation for further details.
 
 
 ```nim
