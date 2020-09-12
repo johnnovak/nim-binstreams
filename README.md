@@ -35,8 +35,8 @@ import binstreams
 var fs = newFileStream("outfile", bigEndian, fmWrite)
 
 # There's just a generic `write()` proc to write single values.
-# The width of the value is determined from the type.
-# Endianness conversions are handled automatically, if required.
+# The width of the value written is determined by the type of the passed in
+# argument. Endianness conversions are handled automatically, if required.
 fs.write(3'i8)
 fs.write(42'i16)
 fs.write(0xcafe'u16)
@@ -49,6 +49,7 @@ fs.write(buf, startIndex=5, numValues=30)
 fs.endian = littleEndian
 fs.write(12.34'f32)
 fs.write(0xcafebabe'i32)
+fs.endian = bigEndian
 fs.write(0xffee81'u64)
 
 # Helpers for writing strings, chars and bools are provided.
@@ -56,9 +57,12 @@ fs.writeStr("some UTF-8 string")
 fs.writeChar('X')
 fs.writeBool(true)
 
-# The file position can be changed at any time.
+# The file position can be queried and changed at any time.
+let pos = fs.getPosition()
 fs.setPosition(0)
 fs.write(88'u8)
+fs.setPosition(pos)
+fs.write(12'i16)
 
 fs.close()
 

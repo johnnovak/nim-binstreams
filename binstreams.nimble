@@ -5,11 +5,11 @@ author        = "John Novak <john@johnnovak.net>"
 description   = "Endianness aware stream I/O for Nim"
 license       = "WTFPL"
 
-skipDirs = @["doc"]
+skipDirs = @["doc", "src"]
 
 # Dependencies
 
-requires "nim >= 1.2.6", "stew"
+requires "nim >= 1.2.6"
 
 # Tasks
 
