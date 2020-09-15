@@ -1,11 +1,11 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.1.1"
 author        = "John Novak <john@johnnovak.net>"
 description   = "Endianness aware stream I/O for Nim"
 license       = "WTFPL"
 
-skipDirs = @["doc", "src"]
+skipDirs = @["doc", "tests"]
 
 # Dependencies
 
