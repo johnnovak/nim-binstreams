@@ -1,3 +1,19 @@
+## :Authors: John Novak
+##
+## **nim-binstreams** is a no-dependencies Nim library that provides endianness
+## aware binary streams. It is a wrapper over the standard `io` module, and it
+## uses [stew/endians2](https://github.com/status-im/nim-stew/blob/master/stew/endians2.nim)
+## for endianness conversions (included in the project), so it should be
+## reasonably fast.
+##
+## Main features:
+##
+## * Support for file and memory buffer backed streams through a single interface
+## * Possibility to switch the endianness of a stream on the fly
+## * Mixed read/write streams are supported
+## * Generics friendly API
+##
+
 import strformat
 import strutils
 
@@ -34,7 +50,7 @@ when not defined(js):
   proc newFileStream*(f: File, endian: Endianness): FileStream =
     ## Creates a new file stream from a file handle with the given endianness.
     ## It is possible to change the endianness later. The current file
-    ## position is not altered.
+    ## position is not changed.
     new(result)
     result.f = f
     result.endian = endian
@@ -90,12 +106,14 @@ when not defined(js):
 
   proc flush*(fs: FileStream) =
     ## Flushes the file associated with the stream.
+    ##
+    ## Raises an `IOError` if the stream is not open.
     fs.checkStreamOpen()
     flushFile(fs.f)
 
   proc atEnd*(fs: FileStream): bool =
     ## Returns true if the file position is at the end of the stream (calls
-    ## `endOfFile() internally`.
+    ## `endOfFile()` internally).
     ##
     ## Raises an `IOError` if the stream is not open.
     fs.checkStreamOpen()
@@ -115,6 +133,11 @@ when not defined(js):
 
   proc getPosition*(fs: FileStream): int64 {.inline.} =
     ## Gets the file position of the file associated with the stream.
+    ##
+    ## Note: even if you created the stream from a file handle, it is
+    ## preferable to use this method for querying the current file position as
+    ## the stream maintains its own file position for better performance (so
+    ## no calls to OS functions).
     ##
     ## Raises an `IOError` if the stream is not open.
     fs.checkStreamOpen()
@@ -189,8 +212,8 @@ when not defined(js):
 
   proc readStr*(fs: FileStream, length: Natural): string =
     ## Reads `length` number of bytes from the stream as an UTF-8 string.
-    ## `length` should be equal to the number of bytes in the UTF-8 string,
-    ## excluding any terminating zero bytes.
+    ## `length` should be equal to the length of the UTF-8 byte sequence,
+    ## excluding any terminating zeroes.
     ##
     ## Raises an `IOError` on read errors.
     result = newString(length)
@@ -227,14 +250,14 @@ when not defined(js):
     ## Peeks (reads without advancing the file position) `numValues` number of
     ## values into `buf` starting from `startIndex`.
     ##
-    ## Raises an `IOError` is the stream is not open.
+    ## Raises an `IOError` on read errors.
     doPeekFileStream(fs): fs.read(buf, startIndex, numValues)
 
   proc peekStr*(fs: FileStream, length: Natural): string =
     ## Peeks (reads without advancing the file position) `length` number of
-    ## bytes from the stream as an UTF-8 string.  `length` should be equal to
-    ## the the number of bytes in the UTF-8 string, excluding any terminating
-    ## zero bytes.
+    ## bytes from the stream as an UTF-8 string. `length` should be equal to
+    ## the length of the UTF-8 byte sequence, excluding any terminating
+    ## zeroes.
     ##
     ## Raises an `IOError` on read errors.
     doPeekFileStream(fs): fs.readStr(length)
@@ -311,7 +334,8 @@ when not defined(js):
       fs.swapAndWrite(buf, startIndex, numValues)
 
   proc write*[T: SomeNumber](fs: FileStream, value: T) =
-    ## Writes a single value to the stream.
+    ## Writes a single value to the stream. The width of the written item is
+    ## the same as that of `value`.
     ##
     ## Raises an `IOError` on write errors.
     var buf {.noinit.}: array[1, T]
@@ -320,7 +344,7 @@ when not defined(js):
 
   proc writeStr*(fs: FileStream, s: string) =
     ## Writes the UTF-8 byte sequence of a string to the stream. No
-    ## terminating zero character is written.
+    ## terminating zero byte is written.
     ##
     ## Raises an `IOError` on write errors.
     fs.write(toOpenArrayByte(s, 0, s.len-1), 0, s.len)
@@ -359,7 +383,7 @@ proc newMemStream*(data: seq[byte], endian: Endianness): MemStream =
 
 proc newMemStream*(endian: Endianness): MemStream =
   ## Creates a new memory stream with an empty internal buffer (typically for
-  ## writin) with the given endianness. It is possible to change the
+  ## writing) with the given endianness. It is possible to change the
   ## endianness later.
   newMemStream(@[], endian)
 
@@ -374,9 +398,12 @@ proc checkStreamOpen(ms: MemStream) =
 
 proc flush*(ms: MemStream) = ms.checkStreamOpen()
   ## `flush` is a no-op for memory streams.
+  ##
+  ## Raises an `IOError` if the stream is not open.
 
 proc atEnd*(ms: MemStream): bool =
-  ## Returns true if the stream position is at the end of the stream.
+  ## Returns true if the stream position is at the last item of the underlying
+  ## memory buffer.
   ##
   ## Raises an `IOError` if the stream is not open.
   ms.checkStreamOpen()
@@ -461,7 +488,7 @@ proc read*(ms: MemStream, T: typedesc[SomeNumber]): T =
 proc readStr*(ms: MemStream, length: Natural): string =
   ## Reads `length` number of bytes from the stream as an UTF-8 string.
   ## `length` should be equal to the number of bytes in the UTF-8 string,
-  ## excluding any terminating zero bytes.
+  ## excluding any terminating zeroes.
   ##
   ## Raises an `IOError` if the stream is not open or if an attemp has been
   ## made to read past the end of the in-memory buffer.
@@ -510,7 +537,7 @@ proc peekStr*(ms: MemStream, length: Natural): string =
   ## Peeks (reads without advancing the file position) `length` number of
   ## bytes from the stream as an UTF-8 string.  `length` should be equal to
   ## the the number of bytes in the UTF-8 string, excluding any terminating
-  ## zero bytes.
+  ## zeroes.
   ##
   ## Raises an `IOError` if the stream is not open or if an attemp has been
   ## made to read past the end of the in-memory buffer.
@@ -558,7 +585,8 @@ proc write*[T: SomeNumber](ms: MemStream, buf: openArray[T],
 
 
 proc write*[T: SomeNumber](ms: MemStream, value: T) =
-  ## Writes a single value to the stream.
+  ## Writes a single value to the stream. The width of the written item
+  ## is the same as that of `value`.
   ##
   ## Raises an `IOError` if the memory stream is not open.
   var buf {.noinit.}: array[1, T]
