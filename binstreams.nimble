@@ -1,11 +1,12 @@
 # Package
 
-version       = "0.1.1"
+version       = "0.1.2"
 author        = "John Novak <john@johnnovak.net>"
 description   = "Endianness aware stream I/O for Nim"
 license       = "WTFPL"
 
-skipDirs = @["doc", "tests"]
+installDirs   = @["deps"]
+installFiles  = @["binstreams.nim", "nim.cfg"]
 
 # Dependencies
 
