@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.2"
+version       = "0.1.0"
 author        = "John Novak <john@johnnovak.net>"
 description   = "Endianness aware stream I/O for Nim"
 license       = "WTFPL"
