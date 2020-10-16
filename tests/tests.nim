@@ -1,7 +1,7 @@
 import os, unittest
-import stew/endians2
 
 import binstreams
+import binstreams/deps/stew/endians2
 
 # {{{ Test data file creation
 const

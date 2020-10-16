@@ -17,7 +17,7 @@
 import strformat
 import strutils
 
-import stew/endians2
+import binstreams/deps/stew/endians2
 
 
 when not defined(js):
