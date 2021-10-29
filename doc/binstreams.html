@@ -34,7 +34,6 @@ function main() {
     }
   }
 
-  const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
   function switchTheme(e) {
       if (e.target.checked) {
           document.documentElement.setAttribute('data-theme', 'dark');
@@ -45,30 +44,29 @@ function main() {
       }
   }
 
-  toggleSwitch.addEventListener('change', switchTheme, false);
+  const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+  if (toggleSwitch !== null) {
+    toggleSwitch.addEventListener('change', switchTheme, false);
+  }
 
+  var currentTheme = localStorage.getItem('theme');
+  if (!currentTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    currentTheme = 'dark';
+  }
+  if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
 
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    document.documentElement.setAttribute('data-theme', "dark");
-    toggleSwitch.checked = true;
-  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    document.documentElement.setAttribute('data-theme', "light");
-    toggleSwitch.checked = false;
-  } else {
-    const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
-    if (currentTheme) {
-      document.documentElement.setAttribute('data-theme', currentTheme);
-
-      if (currentTheme === 'dark') {
-        toggleSwitch.checked = true;
-      }
+    if (currentTheme === 'dark' && toggleSwitch !== null) {
+      toggleSwitch.checked = true;
     }
   }
 }
+
+window.addEventListener('DOMContentLoaded', main);
 </script>
 
 </head>
-<body onload="main()">
+<body>
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">binstreams</h1>
@@ -83,6 +81,9 @@ function main() {
   </div>
   <div id="global-links">
     <ul class="simple">
+    <li>
+      <a href="theindex.html">Index</a>
+    </li>
     </ul>
   </div>
   <div id="searchInputDiv">
@@ -106,21 +107,21 @@ function main() {
 <li>
   <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#StreamSeekPos"
-    title="StreamSeekPos = enum
-  sspSet, sspCur, sspEnd"><wbr />Stream<wbr />Seek<wbr />Pos<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#FileStream"
+      <li><a class="reference" href="#FileStream"
     title="FileStream = ref object
   f: File
   filename: string
   endian: Endianness
-  pos: int64"><wbr />File<wbr />Stream<span class="attachedType"></span></a></li>
+  pos: int64">FileStream</a></li>
   <li><a class="reference" href="#MemStream"
     title="MemStream = ref object
   data*: seq[byte]
   pos: Natural
   endian: Endianness
-  open: bool"><wbr />Mem<wbr />Stream<span class="attachedType"></span></a></li>
+  open: bool">MemStream</a></li>
+  <li><a class="reference" href="#StreamSeekPos"
+    title="StreamSeekPos = enum
+  sspSet, sspCur, sspEnd">StreamSeekPos</a></li>
 
   </ul>
 </li>
@@ -128,122 +129,158 @@ function main() {
   <a class="reference reference-toplevel" href="#10" id="60">Consts</a>
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#ReadChunkSize"
-    title="ReadChunkSize = 512"><wbr />Read<wbr />Chunk<wbr />Size<span class="attachedType"></span></a></li>
+    title="ReadChunkSize = 512">ReadChunkSize</a></li>
   <li><a class="reference" href="#WriteBufSize"
-    title="WriteBufSize = 512"><wbr />Write<wbr />Buf<wbr />Size<span class="attachedType"></span></a></li>
+    title="WriteBufSize = 512">WriteBufSize</a></li>
 
   </ul>
 </li>
 <li>
   <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
   <ul class="simple simple-toc-section">
+      <ul class="simple nested-toc-section">atEnd
+      <li><a class="reference" href="#atEnd%2CFileStream"
+    title="atEnd(fs: FileStream): bool">atEnd(fs: FileStream): bool</a></li>
+  <li><a class="reference" href="#atEnd%2CMemStream"
+    title="atEnd(ms: MemStream): bool">atEnd(ms: MemStream): bool</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">close
+      <li><a class="reference" href="#close%2CFileStream"
+    title="close(fs: FileStream)">close(fs: FileStream)</a></li>
+  <li><a class="reference" href="#close%2CMemStream"
+    title="close(ms: MemStream)">close(ms: MemStream)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">endian
+      <li><a class="reference" href="#endian%2CFileStream"
+    title="endian(fs: FileStream): Endianness">endian(fs: FileStream): Endianness</a></li>
+  <li><a class="reference" href="#endian%2CMemStream"
+    title="endian(ms: MemStream): Endianness">endian(ms: MemStream): Endianness</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">endian=
+      <li><a class="reference" href="#endian%3D%2CFileStream%2CEndianness"
+    title="endian=(fs: FileStream; endian: Endianness)">endian=(fs: FileStream; endian: Endianness)</a></li>
+  <li><a class="reference" href="#endian%3D%2CMemStream%2CEndianness"
+    title="endian=(ms: MemStream; endian: Endianness)">endian=(ms: MemStream; endian: Endianness)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">filename
+      <li><a class="reference" href="#filename%2CFileStream"
+    title="filename(fs: FileStream): string">filename(fs: FileStream): string</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">flush
+      <li><a class="reference" href="#flush%2CFileStream"
+    title="flush(fs: FileStream)">flush(fs: FileStream)</a></li>
+  <li><a class="reference" href="#flush%2CMemStream"
+    title="flush(ms: MemStream)">flush(ms: MemStream)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">getPosition
+      <li><a class="reference" href="#getPosition%2CFileStream"
+    title="getPosition(fs: FileStream): int64">getPosition(fs: FileStream): int64</a></li>
+  <li><a class="reference" href="#getPosition%2CMemStream"
+    title="getPosition(ms: MemStream): int64">getPosition(ms: MemStream): int64</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">newFileStream
       <li><a class="reference" href="#newFileStream%2CFile%2CEndianness"
-    title="newFileStream(f: File; endian: Endianness): FileStream"><wbr />new<wbr />File<wbr />Stream<span class="attachedType">FileStream</span></a></li>
+    title="newFileStream(f: File; endian: Endianness): FileStream">newFileStream(f: File; endian: Endianness): FileStream</a></li>
   <li><a class="reference" href="#newFileStream%2Cstring%2CEndianness%2CFileMode%2Cint"
     title="newFileStream(filename: string; endian: Endianness; mode: FileMode = fmRead;
-              bufSize: int = -1): FileStream"><wbr />new<wbr />File<wbr />Stream<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#openFileStream%2Cstring%2CEndianness%2CFileMode%2Cint"
-    title="openFileStream(filename: string; endian: Endianness; mode: FileMode = fmRead;
-               bufSize: int = -1): FileStream"><wbr />open<wbr />File<wbr />Stream<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#close%2CFileStream"
-    title="close(fs: FileStream)"><wbr />close<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#flush%2CFileStream"
-    title="flush(fs: FileStream)"><wbr />flush<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#atEnd%2CFileStream"
-    title="atEnd(fs: FileStream): bool"><wbr />at<wbr />End<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#filename%2CFileStream"
-    title="filename(fs: FileStream): string"><wbr />filename<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#endian%2CFileStream"
-    title="endian(fs: FileStream): Endianness"><wbr />endian<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#endian%3D%2CFileStream%2CEndianness"
-    title="endian=(fs: FileStream; endian: Endianness)"><wbr />endian=<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#getPosition%2CFileStream"
-    title="getPosition(fs: FileStream): int64"><wbr />get<wbr />Position<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#setPosition%2CFileStream%2Cint64%2CStreamSeekPos"
-    title="setPosition(fs: FileStream; pos: int64; relativeTo: StreamSeekPos = sspSet)"><wbr />set<wbr />Position<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#read%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
-    title="read[T: SomeNumber](fs: FileStream; buf: var openArray[T];
-                   startIndex, numValues: Natural)"><wbr />read<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#read%2CFileStream%2Ctypedesc%5BSomeNumber%5D"
-    title="read(fs: FileStream; T: typedesc[SomeNumber]): T:type"><wbr />read<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#readStr%2CFileStream%2CNatural"
-    title="readStr(fs: FileStream; length: Natural): string"><wbr />read<wbr />Str<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#readChar%2CFileStream"
-    title="readChar(fs: FileStream): char"><wbr />read<wbr />Char<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#readBool%2CFileStream"
-    title="readBool(fs: FileStream): bool"><wbr />read<wbr />Bool<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#peek%2CFileStream%2Ctypedesc%5BSomeNumber%5D"
-    title="peek(fs: FileStream; T: typedesc[SomeNumber]): T:type"><wbr />peek<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#peek%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
-    title="peek[T: SomeNumber](fs: FileStream; buf: var openArray[T];
-                   startIndex, numValues: Natural)"><wbr />peek<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#peekStr%2CFileStream%2CNatural"
-    title="peekStr(fs: FileStream; length: Natural): string"><wbr />peek<wbr />Str<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#peekChar%2CFileStream"
-    title="peekChar(fs: FileStream): char"><wbr />peek<wbr />Char<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#peekBool%2CFileStream"
-    title="peekBool(fs: FileStream): bool"><wbr />peek<wbr />Bool<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#write%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
-    title="write[T: SomeNumber](fs: FileStream; buf: openArray[T];
-                    startIndex, numValues: Natural)"><wbr />write<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#write%2CFileStream%2CT"
-    title="write[T: SomeNumber](fs: FileStream; value: T)"><wbr />write<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#writeStr%2CFileStream%2Cstring"
-    title="writeStr(fs: FileStream; s: string)"><wbr />write<wbr />Str<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#writeChar%2CFileStream%2Cchar"
-    title="writeChar(fs: FileStream; ch: char)"><wbr />write<wbr />Char<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#writeBool%2CFileStream%2Cbool"
-    title="writeBool(fs: FileStream; b: bool)"><wbr />write<wbr />Bool<span class="attachedType">FileStream</span></a></li>
-  <li><a class="reference" href="#newMemStream%2Cseq%5Bbyte%5D%2CEndianness"
-    title="newMemStream(data: seq[byte]; endian: Endianness): MemStream"><wbr />new<wbr />Mem<wbr />Stream<span class="attachedType">MemStream</span></a></li>
+              bufSize: int = -1): FileStream">newFileStream(filename: string; endian: Endianness; mode: FileMode = fmRead;
+              bufSize: int = -1): FileStream</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">newMemStream
+      <li><a class="reference" href="#newMemStream%2Cseq%5Bbyte%5D%2CEndianness"
+    title="newMemStream(data: seq[byte]; endian: Endianness): MemStream">newMemStream(data: seq[byte]; endian: Endianness): MemStream</a></li>
   <li><a class="reference" href="#newMemStream%2CEndianness"
-    title="newMemStream(endian: Endianness): MemStream"><wbr />new<wbr />Mem<wbr />Stream<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#close%2CMemStream"
-    title="close(ms: MemStream)"><wbr />close<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#flush%2CMemStream"
-    title="flush(ms: MemStream)"><wbr />flush<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#atEnd%2CMemStream"
-    title="atEnd(ms: MemStream): bool"><wbr />at<wbr />End<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#endian%2CMemStream"
-    title="endian(ms: MemStream): Endianness"><wbr />endian<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#endian%3D%2CMemStream%2CEndianness"
-    title="endian=(ms: MemStream; endian: Endianness)"><wbr />endian=<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#getPosition%2CMemStream"
-    title="getPosition(ms: MemStream): int64"><wbr />get<wbr />Position<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#setPosition%2CMemStream%2Cint64%2CStreamSeekPos"
-    title="setPosition(ms: MemStream; pos: int64; relativeTo: StreamSeekPos = sspSet)"><wbr />set<wbr />Position<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#read%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
-    title="read[T: SomeNumber](ms: MemStream; buf: var openArray[T];
-                   startIndex, numValues: Natural)"><wbr />read<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#read%2CMemStream%2Ctypedesc%5BSomeNumber%5D"
-    title="read(ms: MemStream; T: typedesc[SomeNumber]): T:type"><wbr />read<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#readStr%2CMemStream%2CNatural"
-    title="readStr(ms: MemStream; length: Natural): string"><wbr />read<wbr />Str<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#readChar%2CMemStream"
-    title="readChar(ms: MemStream): char"><wbr />read<wbr />Char<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#readBool%2CMemStream"
-    title="readBool(ms: MemStream): bool"><wbr />read<wbr />Bool<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#peek%2CMemStream%2Ctypedesc%5BSomeNumber%5D"
-    title="peek(ms: MemStream; T: typedesc[SomeNumber]): T:type"><wbr />peek<span class="attachedType">MemStream</span></a></li>
+    title="newMemStream(endian: Endianness): MemStream">newMemStream(endian: Endianness): MemStream</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">openFileStream
+      <li><a class="reference" href="#openFileStream%2Cstring%2CEndianness%2CFileMode%2Cint"
+    title="openFileStream(filename: string; endian: Endianness; mode: FileMode = fmRead;
+               bufSize: int = -1): FileStream">openFileStream(filename: string; endian: Endianness; mode: FileMode = fmRead;
+               bufSize: int = -1): FileStream</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">peek
+      <li><a class="reference" href="#peek%2CFileStream%2Ctypedesc%5BAllTypes%5D"
+    title="peek(fs: FileStream; T: typedesc[AllTypes]): T:type">peek(fs: FileStream; T: typedesc[AllTypes]): T:type</a></li>
+  <li><a class="reference" href="#peek%2CMemStream%2Ctypedesc%5BAllTypes%5D"
+    title="peek(ms: MemStream; T: typedesc[AllTypes]): T:type">peek(ms: MemStream; T: typedesc[AllTypes]): T:type</a></li>
+  <li><a class="reference" href="#peek%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
+    title="peek[T: AllTypes](fs: FileStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)">peek[T: AllTypes](fs: FileStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)</a></li>
   <li><a class="reference" href="#peek%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
-    title="peek[T: SomeNumber](ms: MemStream; buf: var openArray[T];
-                   startIndex, numValues: Natural)"><wbr />peek<span class="attachedType">MemStream</span></a></li>
+    title="peek[T: AllTypes](ms: MemStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)">peek[T: AllTypes](ms: MemStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">peekStr
+      <li><a class="reference" href="#peekStr%2CFileStream%2CNatural"
+    title="peekStr(fs: FileStream; length: Natural): string">peekStr(fs: FileStream; length: Natural): string</a></li>
   <li><a class="reference" href="#peekStr%2CMemStream%2CNatural"
-    title="peekStr(ms: MemStream; length: Natural): string"><wbr />peek<wbr />Str<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#peekChar%2CMemStream"
-    title="peekChar(ms: MemStream): char"><wbr />peek<wbr />Char<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#peekBool%2CMemStream"
-    title="peekBool(ms: MemStream): bool"><wbr />peek<wbr />Bool<span class="attachedType">MemStream</span></a></li>
+    title="peekStr(ms: MemStream; length: Natural): string">peekStr(ms: MemStream; length: Natural): string</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">read
+      <li><a class="reference" href="#read%2CFileStream%2Ctypedesc%5BAllTypes%5D"
+    title="read(fs: FileStream; T: typedesc[AllTypes]): T:type">read(fs: FileStream; T: typedesc[AllTypes]): T:type</a></li>
+  <li><a class="reference" href="#read%2CMemStream%2Ctypedesc%5BAllTypes%5D"
+    title="read(ms: MemStream; T: typedesc[AllTypes]): T:type">read(ms: MemStream; T: typedesc[AllTypes]): T:type</a></li>
+  <li><a class="reference" href="#read%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
+    title="read[T: AllTypes](fs: FileStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)">read[T: AllTypes](fs: FileStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)</a></li>
+  <li><a class="reference" href="#read%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
+    title="read[T: AllTypes](ms: MemStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)">read[T: AllTypes](ms: MemStream; buf: var openArray[T];
+                  startIndex, numValues: Natural)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">readStr
+      <li><a class="reference" href="#readStr%2CFileStream%2CNatural"
+    title="readStr(fs: FileStream; length: Natural): string">readStr(fs: FileStream; length: Natural): string</a></li>
+  <li><a class="reference" href="#readStr%2CMemStream%2CNatural"
+    title="readStr(ms: MemStream; length: Natural): string">readStr(ms: MemStream; length: Natural): string</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">setPosition
+      <li><a class="reference" href="#setPosition%2CFileStream%2Cint64%2CStreamSeekPos"
+    title="setPosition(fs: FileStream; pos: int64; relativeTo: StreamSeekPos = sspSet)">setPosition(fs: FileStream; pos: int64; relativeTo: StreamSeekPos = sspSet)</a></li>
+  <li><a class="reference" href="#setPosition%2CMemStream%2Cint64%2CStreamSeekPos"
+    title="setPosition(ms: MemStream; pos: int64; relativeTo: StreamSeekPos = sspSet)">setPosition(ms: MemStream; pos: int64; relativeTo: StreamSeekPos = sspSet)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">write
+      <li><a class="reference" href="#write%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
+    title="write[T: AllTypes](fs: FileStream; buf: openArray[T];
+                   startIndex, numValues: Natural)">write[T: AllTypes](fs: FileStream; buf: openArray[T];
+                   startIndex, numValues: Natural)</a></li>
+  <li><a class="reference" href="#write%2CFileStream%2CT"
+    title="write[T: AllTypes](fs: FileStream; value: T)">write[T: AllTypes](fs: FileStream; value: T)</a></li>
   <li><a class="reference" href="#write%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"
-    title="write[T: SomeNumber](ms: MemStream; buf: openArray[T]; startIndex, numValues: Natural)"><wbr />write<span class="attachedType">MemStream</span></a></li>
+    title="write[T: AllTypes](ms: MemStream; buf: openArray[T];
+                   startIndex, numValues: Natural)">write[T: AllTypes](ms: MemStream; buf: openArray[T];
+                   startIndex, numValues: Natural)</a></li>
   <li><a class="reference" href="#write%2CMemStream%2CT"
-    title="write[T: SomeNumber](ms: MemStream; value: T)"><wbr />write<span class="attachedType">MemStream</span></a></li>
+    title="write[T: AllTypes](ms: MemStream; value: T)">write[T: AllTypes](ms: MemStream; value: T)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">writeStr
+      <li><a class="reference" href="#writeStr%2CFileStream%2Cstring"
+    title="writeStr(fs: FileStream; s: string)">writeStr(fs: FileStream; s: string)</a></li>
   <li><a class="reference" href="#writeStr%2CMemStream%2Cstring"
-    title="writeStr(ms: MemStream; s: string)"><wbr />write<wbr />Str<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#writeChar%2CMemStream%2Cchar"
-    title="writeChar(ms: MemStream; ch: char)"><wbr />write<wbr />Char<span class="attachedType">MemStream</span></a></li>
-  <li><a class="reference" href="#writeBool%2CMemStream%2Cbool"
-    title="writeBool(ms: MemStream; b: bool)"><wbr />write<wbr />Bool<span class="attachedType">MemStream</span></a></li>
+    title="writeStr(ms: MemStream; s: string)">writeStr(ms: MemStream; s: string)</a></li>
+
+  </ul>
 
   </ul>
 </li>
@@ -251,16 +288,17 @@ function main() {
 </ul>
 
   </div>
+  
   <div class="nine columns" id="content">
   <div id="tocRoot"></div>
   
-  <p class="module-desc"><table class="docinfo" frame="void" rules="none"><col class="docinfo-name" /><col class="docinfo-content" /><tbody valign="top"><tr><th class="docinfo-name">Authors:</th><td> John Novak</td></tr>
-</tbody></table><p><strong>nim-binstreams</strong> is a no-dependencies Nim library that provides endianness aware binary streams. It is a wrapper over the standard <tt class="docutils literal"><span class="pre">io</span></tt> module, and it uses <a class="reference external" href="https://github.com/status-im/nim-stew/blob/master/stew/endians2.nim">stew/endians2</a> for endianness conversions (included in the project), so it should be reasonably fast.</p>
+  <p class="module-desc"><table class="docinfo" frame="void" rules="none"><col class="docinfo-name" /><col class="docinfo-content" /><tbody valign="top"><tr><th class="docinfo-name">Authors:</th><td>John Novak</td></tr>
+</tbody></table><p><strong>nim-binstreams</strong> is a no-dependencies Nim library that provides endianness aware binary streams. It is a wrapper over the standard <tt class="docutils literal"><span class="pre"><span class="Identifier">io</span></span></tt> module, and it uses <a class="reference external" href="https://github.com/status-im/nim-stew/blob/master/stew/endians2.nim">stew/endians2</a> for endianness conversions (included in the project), so it should be reasonably fast.</p>
 <p>Main features:</p>
 <ul class="simple"><li>Support for file and memory buffer backed streams through a single interface</li>
 <li>Possibility to switch the endianness of a stream on the fly</li>
 <li>Mixed read/write streams are supported</li>
-<li>Generics friendly API</li>
+<li>Generics-friendly API</li>
 </ul>
 </p>
   <div class="section" id="6">
@@ -271,15 +309,7 @@ function main() {
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
 <dl class="item">
-<a id="StreamSeekPos"></a>
-<dt><pre><a href="binstreams.html#StreamSeekPos"><span class="Identifier">StreamSeekPos</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">sspSet</span><span class="Other">,</span> <span class="Identifier">sspCur</span><span class="Other">,</span> <span class="Identifier">sspEnd</span></pre></dt>
-<dd>
-
-
-
-</dd>
-<a id="FileStream"></a>
+<div id="FileStream">
 <dt><pre><a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">f</span><span class="Other">:</span> <span class="Identifier">File</span>
   <span class="Identifier">filename</span><span class="Other">:</span> <span class="Identifier">string</span>
@@ -291,7 +321,8 @@ function main() {
 
 
 </dd>
-<a id="MemStream"></a>
+</div>
+<div id="MemStream">
 <dt><pre><a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">data</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span>
   <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">Natural</span>
@@ -303,483 +334,422 @@ function main() {
 
 
 </dd>
+</div>
+<div id="StreamSeekPos">
+<dt><pre><a href="binstreams.html#StreamSeekPos"><span class="Identifier">StreamSeekPos</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
+  <span class="Identifier">sspSet</span><span class="Other">,</span> <span class="Identifier">sspCur</span><span class="Other">,</span> <span class="Identifier">sspEnd</span></pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
 
 </dl></div>
 <div class="section" id="10">
 <h1><a class="toc-backref" href="#10">Consts</a></h1>
 <dl class="item">
-<a id="ReadChunkSize"></a>
+<div id="ReadChunkSize">
 <dt><pre><a href="binstreams.html#ReadChunkSize"><span class="Identifier">ReadChunkSize</span></a> <span class="Other">=</span> <span class="DecNumber">512</span></pre></dt>
 <dd>
 
 
 
 </dd>
-<a id="WriteBufSize"></a>
+</div>
+<div id="WriteBufSize">
 <dt><pre><a href="binstreams.html#WriteBufSize"><span class="Identifier">WriteBufSize</span></a> <span class="Other">=</span> <span class="DecNumber">512</span></pre></dt>
 <dd>
 
 
 
 </dd>
+</div>
 
 </dl></div>
 <div class="section" id="12">
 <h1><a class="toc-backref" href="#12">Procs</a></h1>
 <dl class="item">
-<a id="newFileStream,File,Endianness"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newFileStream%2CFile%2CEndianness"><span class="Identifier">newFileStream</span></a><span class="Other">(</span><span class="Identifier">f</span><span class="Other">:</span> <span class="Identifier">File</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<div id="atEnd,FileStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#atEnd%2CFileStream"><span class="Identifier">atEnd</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
-Creates a new file stream from a file handle with the given endianness. It is possible to change the endianness later. The current file position is not changed.
-
-</dd>
-<a id="newFileStream,string,Endianness,FileMode,int"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newFileStream%2Cstring%2CEndianness%2CFileMode%2Cint"><span class="Identifier">newFileStream</span></a><span class="Other">(</span><span class="Identifier">filename</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">;</span> <span class="Identifier">mode</span><span class="Other">:</span> <span class="Identifier">FileMode</span> <span class="Other">=</span> <span class="Identifier">fmRead</span><span class="Other">;</span>
-                  <span class="Identifier">bufSize</span><span class="Other">:</span> <span class="Identifier">int</span> <span class="Other">=</span> <span class="Operator">-</span><span class="DecNumber">1</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-Creates a new file stream from a file named <tt class="docutils literal"><span class="pre">filename</span></tt> with the given <tt class="docutils literal"><span class="pre">mode</span></tt> and endianness. It is possible to change the endianness later. It is also possible to explicitly set the <tt class="docutils literal"><span class="pre">bufSize</span></tt> (the default is to use whatever default <tt class="docutils literal"><span class="pre">open</span></tt> uses). This method does not raise an exception if the file cannot be opened; it just returns <tt class="docutils literal"><span class="pre">nil</span></tt>.
-
-</dd>
-<a id="openFileStream,string,Endianness,FileMode,int"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#openFileStream%2Cstring%2CEndianness%2CFileMode%2Cint"><span class="Identifier">openFileStream</span></a><span class="Other">(</span><span class="Identifier">filename</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">;</span> <span class="Identifier">mode</span><span class="Other">:</span> <span class="Identifier">FileMode</span> <span class="Other">=</span> <span class="Identifier">fmRead</span><span class="Other">;</span>
-                   <span class="Identifier">bufSize</span><span class="Other">:</span> <span class="Identifier">int</span> <span class="Other">=</span> <span class="Operator">-</span><span class="DecNumber">1</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Creates a new file stream from a file named <tt class="docutils literal"><span class="pre">filename</span></tt> with the given <tt class="docutils literal"><span class="pre">mode</span></tt> and endianness. It is possible to change the endianness later. It is also possible to explicitly set the <tt class="docutils literal"><span class="pre">bufSize</span></tt> (the default is to use whatever default <tt class="docutils literal"><span class="pre">open</span></tt> uses).</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the file cannot be opened.</p>
+<p>Returns true if the file position is at the end of the stream (calls <tt class="docutils literal"><span class="pre"><span class="Identifier">endOfFile</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt> internally).</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
 
 
 </dd>
-<a id="close,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#close%2CFileStream"><span class="Identifier">close</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="atEnd,MemStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#atEnd%2CMemStream"><span class="Identifier">atEnd</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Returns true if the stream position is at the last item of the underlying memory buffer.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
+
+
+</dd>
+</div>
+<div id="close,FileStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#close%2CFileStream"><span class="Identifier">close</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <p>Closes a file stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream has been closed or has not been initialised.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream has been closed or has not been initialised.</p>
 
 
 </dd>
-<a id="flush,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#flush%2CFileStream"><span class="Identifier">flush</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Flushes the file associated with the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
-
-
-</dd>
-<a id="atEnd,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#atEnd%2CFileStream"><span class="Identifier">atEnd</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Returns true if the file position is at the end of the stream (calls <tt class="docutils literal"><span class="pre">endOfFile()</span></tt> internally).</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
-
-
-</dd>
-<a id="filename,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#filename%2CFileStream"><span class="Identifier">filename</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-Returns the name of the file associated with the stream.
-
-</dd>
-<a id="endian,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#endian%2CFileStream"><span class="Identifier">endian</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Endianness</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-Returns the current endianness.
-
-</dd>
-<a id="endian=,FileStream,Endianness"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#endian%3D%2CFileStream%2CEndianness"><span class="Identifier">endian=</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-Sets the endianness (effective from the next read/write operation).
-
-</dd>
-<a id="getPosition,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#getPosition%2CFileStream"><span class="Identifier">getPosition</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int64</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Gets the file position of the file associated with the stream.</p>
-<p>Note: even if you created the stream from a file handle, it is preferable to use this method for querying the current file position as the stream maintains its own file position for better performance (so no calls to OS functions).</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
-
-
-</dd>
-<a id="setPosition,FileStream,int64,StreamSeekPos"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#setPosition%2CFileStream%2Cint64%2CStreamSeekPos"><span class="Identifier">setPosition</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">int64</span><span class="Other">;</span> <span class="Identifier">relativeTo</span><span class="Other">:</span> <a href="binstreams.html#StreamSeekPos"><span class="Identifier">StreamSeekPos</span></a> <span class="Other">=</span> <span class="Identifier">sspSet</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
-    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Sets the file position of the file associated with the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
-
-
-</dd>
-<a id="read,FileStream,openArray[T],Natural,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#read%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">read</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
-                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
-<dd>
-
-<p>Reads <tt class="docutils literal"><span class="pre">numValues</span></tt> number of values from the stream into <tt class="docutils literal"><span class="pre">buf</span></tt>, starting from <tt class="docutils literal"><span class="pre">startIndex</span></tt>.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="read,FileStream,typedesc[SomeNumber]"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#read%2CFileStream%2Ctypedesc%5BSomeNumber%5D"><span class="Identifier">read</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
-<dd>
-
-<p>Reads a single value of type <tt class="docutils literal"><span class="pre">T</span></tt> from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="readStr,FileStream,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#readStr%2CFileStream%2CNatural"><span class="Identifier">readStr</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Reads <tt class="docutils literal"><span class="pre">length</span></tt> number of bytes from the stream as an UTF-8 string. <tt class="docutils literal"><span class="pre">length</span></tt> should be equal to the length of the UTF-8 byte sequence, excluding any terminating zeroes.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="readChar,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#readChar%2CFileStream"><span class="Identifier">readChar</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">char</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-                                  <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Reads a single char (byte) from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="readBool,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#readBool%2CFileStream"><span class="Identifier">readBool</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-                                  <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Reads a byte as a bool from the stream. Zero bytes are considered false, any other value is considered true.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="peek,FileStream,typedesc[SomeNumber]"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CFileStream%2Ctypedesc%5BSomeNumber%5D"><span class="Identifier">peek</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) a single value of type <tt class="docutils literal"><span class="pre">T</span></tt> from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="peek,FileStream,openArray[T],Natural,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">peek</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
-                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre">numValues</span></tt> number of values into <tt class="docutils literal"><span class="pre">buf</span></tt> starting from <tt class="docutils literal"><span class="pre">startIndex</span></tt>.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="peekStr,FileStream,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peekStr%2CFileStream%2CNatural"><span class="Identifier">peekStr</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre">length</span></tt> number of bytes from the stream as an UTF-8 string. <tt class="docutils literal"><span class="pre">length</span></tt> should be equal to the length of the UTF-8 byte sequence, excluding any terminating zeroes.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="peekChar,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peekChar%2CFileStream"><span class="Identifier">peekChar</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">char</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-                                  <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) a single char (byte) from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="peekBool,FileStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peekBool%2CFileStream"><span class="Identifier">peekBool</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-                                  <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) a byte as a bool from the stream. Zero bytes are considered false, any other value is considered true.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on read errors.</p>
-
-
-</dd>
-<a id="write,FileStream,openArray[T],Natural,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#write%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
-                        <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
-<dd>
-
-<p>Writes <tt class="docutils literal"><span class="pre">numValues</span></tt> number of values from <tt class="docutils literal"><span class="pre">buf</span></tt> starting from <tt class="docutils literal"><span class="pre">startIndex</span></tt> to the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on write errors.</p>
-
-
-</dd>
-<a id="write,FileStream,T"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#write%2CFileStream%2CT"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span></pre></dt>
-<dd>
-
-<p>Writes a single value to the stream. The width of the written item is the same as that of <tt class="docutils literal"><span class="pre">value</span></tt>.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on write errors.</p>
-
-
-</dd>
-<a id="writeStr,FileStream,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#writeStr%2CFileStream%2Cstring"><span class="Identifier">writeStr</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-                                      <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Writes the UTF-8 byte sequence of a string to the stream. No terminating zero byte is written.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on write errors.</p>
-
-
-</dd>
-<a id="writeChar,FileStream,char"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#writeChar%2CFileStream%2Cchar"><span class="Identifier">writeChar</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">ch</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-                                      <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Writes a single char (byte) to the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on write errors.</p>
-
-
-</dd>
-<a id="writeBool,FileStream,bool"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#writeBool%2CFileStream%2Cbool"><span class="Identifier">writeBool</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">b</span><span class="Other">:</span> <span class="Identifier">bool</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
-                                     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Writes a single bool to the stream. <tt class="docutils literal"><span class="pre">0</span></tt> is written for false and <tt class="docutils literal"><span class="pre">1</span></tt> for true.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> on write errors.</p>
-
-
-</dd>
-<a id="newMemStream,seq[byte],Endianness"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newMemStream%2Cseq%5Bbyte%5D%2CEndianness"><span class="Identifier">newMemStream</span></a><span class="Other">(</span><span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-Creates a new memory stream from a sequence of bytes with the given endianness. It is possible to change the endianness later.
-
-</dd>
-<a id="newMemStream,Endianness"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#newMemStream%2CEndianness"><span class="Identifier">newMemStream</span></a><span class="Other">(</span><span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-Creates a new memory stream with an empty internal buffer (typically for writing) with the given endianness. It is possible to change the endianness later.
-
-</dd>
-<a id="close,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#close%2CMemStream"><span class="Identifier">close</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="close,MemStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#close%2CMemStream"><span class="Identifier">close</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 Closes the memory stream.
 
 </dd>
-<a id="flush,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#flush%2CMemStream"><span class="Identifier">flush</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p><tt class="docutils literal"><span class="pre">flush</span></tt> is a no-op for memory streams.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
-
-
-</dd>
-<a id="atEnd,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#atEnd%2CMemStream"><span class="Identifier">atEnd</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Returns true if the stream position is at the last item of the underlying memory buffer.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
-
-
-</dd>
-<a id="endian,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#endian%2CMemStream"><span class="Identifier">endian</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Endianness</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="endian,FileStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#endian%2CFileStream"><span class="Identifier">endian</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Endianness</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 Returns the current endianness.
 
 </dd>
-<a id="endian=,MemStream,Endianness"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#endian%3D%2CMemStream%2CEndianness"><span class="Identifier">endian=</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="endian,MemStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#endian%2CMemStream"><span class="Identifier">endian</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Endianness</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Returns the current endianness.
+
+</dd>
+</div>
+<div id="endian=,FileStream,Endianness">
+<dt><pre><span class="Keyword">proc</span> <a href="#endian%3D%2CFileStream%2CEndianness"><span class="Identifier">endian=</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 Sets the endianness (effective from the next read/write operation).
 
 </dd>
-<a id="getPosition,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#getPosition%2CMemStream"><span class="Identifier">getPosition</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int64</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="endian=,MemStream,Endianness">
+<dt><pre><span class="Keyword">proc</span> <a href="#endian%3D%2CMemStream%2CEndianness"><span class="Identifier">endian=</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Sets the endianness (effective from the next read/write operation).
+
+</dd>
+</div>
+<div id="filename,FileStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#filename%2CFileStream"><span class="Identifier">filename</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Returns the name of the file associated with the stream.
+
+</dd>
+</div>
+<div id="flush,FileStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#flush%2CFileStream"><span class="Identifier">flush</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Flushes the file associated with the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
+
+
+</dd>
+</div>
+<div id="flush,MemStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#flush%2CMemStream"><span class="Identifier">flush</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p><tt class="docutils literal"><span class="pre"><span class="Identifier">flush</span></span></tt> is a no-op for memory streams.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
+
+
+</dd>
+</div>
+<div id="getPosition,FileStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#getPosition%2CFileStream"><span class="Identifier">getPosition</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int64</span> {.<span class="Identifier">inline</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Gets the file position of the file associated with the stream.</p>
+<p><strong>Note:</strong> Even if you created the stream from a file handle, it is preferable to use this method for querying the current file position to avoid OS calls (the stream maintains its own file position for better performance).</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
+
+
+</dd>
+</div>
+<div id="getPosition,MemStream">
+<dt><pre><span class="Keyword">proc</span> <a href="#getPosition%2CMemStream"><span class="Identifier">getPosition</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int64</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <p>Gets the current read/write position of the memory stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
 
 
 </dd>
-<a id="setPosition,MemStream,int64,StreamSeekPos"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#setPosition%2CMemStream%2Cint64%2CStreamSeekPos"><span class="Identifier">setPosition</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">int64</span><span class="Other">;</span> <span class="Identifier">relativeTo</span><span class="Other">:</span> <a href="binstreams.html#StreamSeekPos"><span class="Identifier">StreamSeekPos</span></a> <span class="Other">=</span> <span class="Identifier">sspSet</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
-    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="newFileStream,File,Endianness">
+<dt><pre><span class="Keyword">proc</span> <a href="#newFileStream%2CFile%2CEndianness"><span class="Identifier">newFileStream</span></a><span class="Other">(</span><span class="Identifier">f</span><span class="Other">:</span> <span class="Identifier">File</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Creates a new file stream from a file handle with the given endianness. It is possible to change the endianness later on-the-fly. The current file position is not changed.
+
+</dd>
+</div>
+<div id="newFileStream,string,Endianness,FileMode,int">
+<dt><pre><span class="Keyword">proc</span> <a href="#newFileStream%2Cstring%2CEndianness%2CFileMode%2Cint"><span class="Identifier">newFileStream</span></a><span class="Other">(</span><span class="Identifier">filename</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">;</span>
+                   <span class="Identifier">mode</span><span class="Other">:</span> <span class="Identifier">FileMode</span> <span class="Other">=</span> <span class="Identifier">fmRead</span><span class="Other">;</span> <span class="Identifier">bufSize</span><span class="Other">:</span> <span class="Identifier">int</span> <span class="Other">=</span> <span class="DecNumber">-1</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Creates a new file stream from a file named <tt class="docutils literal"><span class="pre"><span class="Identifier">filename</span></span></tt> with the given <tt class="docutils literal"><span class="pre"><span class="Identifier">mode</span></span></tt> and endianness. It is possible to change the endianness later on-the-fly. It is also possible to explicitly set the <tt class="docutils literal"><span class="pre"><span class="Identifier">bufSize</span></span></tt> (the default is to use whatever default <tt class="docutils literal"><span class="pre"><span class="Identifier">open</span></span></tt> uses). This method does not raise an exception if the file cannot be opened; it just returns <tt class="docutils literal"><span class="pre"><span class="Keyword">nil</span></span></tt>.
+
+</dd>
+</div>
+<div id="newMemStream,seq[byte],Endianness">
+<dt><pre><span class="Keyword">proc</span> <a href="#newMemStream%2Cseq%5Bbyte%5D%2CEndianness"><span class="Identifier">newMemStream</span></a><span class="Other">(</span><span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">byte</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Creates a new memory stream from a sequence of bytes with the given endianness. It is possible to change the endianness later on-the-fly.
+
+</dd>
+</div>
+<div id="newMemStream,Endianness">
+<dt><pre><span class="Keyword">proc</span> <a href="#newMemStream%2CEndianness"><span class="Identifier">newMemStream</span></a><span class="Other">(</span><span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Creates a new memory stream with an empty internal buffer (typically for writing) with the given endianness. It is possible to change the endianness later on-the-fly.
+
+</dd>
+</div>
+<div id="openFileStream,string,Endianness,FileMode,int">
+<dt><pre><span class="Keyword">proc</span> <a href="#openFileStream%2Cstring%2CEndianness%2CFileMode%2Cint"><span class="Identifier">openFileStream</span></a><span class="Other">(</span><span class="Identifier">filename</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">endian</span><span class="Other">:</span> <span class="Identifier">Endianness</span><span class="Other">;</span>
+                    <span class="Identifier">mode</span><span class="Other">:</span> <span class="Identifier">FileMode</span> <span class="Other">=</span> <span class="Identifier">fmRead</span><span class="Other">;</span> <span class="Identifier">bufSize</span><span class="Other">:</span> <span class="Identifier">int</span> <span class="Other">=</span> <span class="DecNumber">-1</span><span class="Other">)</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Creates a new file stream from a file named <tt class="docutils literal"><span class="pre"><span class="Identifier">filename</span></span></tt> with the given <tt class="docutils literal"><span class="pre"><span class="Identifier">mode</span></span></tt> and endianness. It is possible to change the endianness later on-the-fly. It is also possible to explicitly set the <tt class="docutils literal"><span class="pre"><span class="Identifier">bufSize</span></span></tt> (the default is to use whatever default <tt class="docutils literal"><span class="pre"><span class="Identifier">open</span></span></tt> uses).</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the file cannot be opened.</p>
+
+
+</dd>
+</div>
+<div id="peek,FileStream,typedesc[AllTypes]">
+<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CFileStream%2Ctypedesc%5BAllTypes%5D"><span class="Identifier">peek</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
+<dd>
+
+<p>Peeks (reads without advancing the file position) a single value of type <tt class="docutils literal"><span class="pre"><span class="Identifier">T</span></span></tt> from the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on read errors.</p>
+
+
+</dd>
+</div>
+<div id="peek,MemStream,typedesc[AllTypes]">
+<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CMemStream%2Ctypedesc%5BAllTypes%5D"><span class="Identifier">peek</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
+<dd>
+
+<p>Peeks (reads without advancing the file position) a single value of type <tt class="docutils literal"><span class="pre"><span class="Identifier">T</span></span></tt> from the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
+
+
+</dd>
+</div>
+<div id="peek,FileStream,openArray[T],Natural,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">peek</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
+                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
+<dd>
+
+<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre"><span class="Identifier">numValues</span></span></tt> number of values into <tt class="docutils literal"><span class="pre"><span class="Identifier">buf</span></span></tt> starting from <tt class="docutils literal"><span class="pre"><span class="Identifier">startIndex</span></span></tt>.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on read errors.</p>
+
+
+</dd>
+</div>
+<div id="peek,MemStream,openArray[T],Natural,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">peek</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
+                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
+<dd>
+
+<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre"><span class="Identifier">numValues</span></span></tt> number of values into <tt class="docutils literal"><span class="pre"><span class="Identifier">buf</span></span></tt> starting from <tt class="docutils literal"><span class="pre"><span class="Identifier">startIndex</span></span></tt>.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
+
+
+</dd>
+</div>
+<div id="peekStr,FileStream,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#peekStr%2CFileStream%2CNatural"><span class="Identifier">peekStr</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> number of bytes from the stream as an UTF-8 string. <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> should be equal to the length of the UTF-8 byte sequence, excluding any terminating zeroes.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on read errors.</p>
+
+
+</dd>
+</div>
+<div id="peekStr,MemStream,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#peekStr%2CMemStream%2CNatural"><span class="Identifier">peekStr</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> number of bytes from the stream as an UTF-8 string.  <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> should be equal to the the number of bytes in the UTF-8 string, excluding any terminating zeroes.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
+
+
+</dd>
+</div>
+<div id="read,FileStream,typedesc[AllTypes]">
+<dt><pre><span class="Keyword">proc</span> <a href="#read%2CFileStream%2Ctypedesc%5BAllTypes%5D"><span class="Identifier">read</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
+<dd>
+
+<p>Reads a single value of type <tt class="docutils literal"><span class="pre"><span class="Identifier">T</span></span></tt> from the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on read errors.</p>
+
+
+</dd>
+</div>
+<div id="read,MemStream,typedesc[AllTypes]">
+<dt><pre><span class="Keyword">proc</span> <a href="#read%2CMemStream%2Ctypedesc%5BAllTypes%5D"><span class="Identifier">read</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
+<dd>
+
+<p>Reads a single value of type <tt class="docutils literal"><span class="pre"><span class="Identifier">T</span></span></tt> from the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
+
+
+</dd>
+</div>
+<div id="read,FileStream,openArray[T],Natural,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#read%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">read</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
+                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
+<dd>
+
+<p>Reads <tt class="docutils literal"><span class="pre"><span class="Identifier">numValues</span></span></tt> number of values from the stream into <tt class="docutils literal"><span class="pre"><span class="Identifier">buf</span></span></tt>, starting from <tt class="docutils literal"><span class="pre"><span class="Identifier">startIndex</span></span></tt>.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on read errors.</p>
+
+
+</dd>
+</div>
+<div id="read,MemStream,openArray[T],Natural,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#read%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">read</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
+                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
+<dd>
+
+<p>Reads <tt class="docutils literal"><span class="pre"><span class="Identifier">numValues</span></span></tt> number of values from the stream into <tt class="docutils literal"><span class="pre"><span class="Identifier">buf</span></span></tt>, starting from <tt class="docutils literal"><span class="pre"><span class="Identifier">startIndex</span></span></tt>.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
+
+
+</dd>
+</div>
+<div id="readStr,FileStream,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#readStr%2CFileStream%2CNatural"><span class="Identifier">readStr</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">ReadIOEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Reads <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> number of bytes from the stream as an UTF-8 string. <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> should be equal to the length of the UTF-8 byte sequence, excluding any terminating zeroes.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on read errors.</p>
+
+
+</dd>
+</div>
+<div id="readStr,MemStream,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#readStr%2CMemStream%2CNatural"><span class="Identifier">readStr</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Reads <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> number of bytes from the stream as an UTF-8 string. <tt class="docutils literal"><span class="pre"><span class="Identifier">length</span></span></tt> should be equal to the number of bytes in the UTF-8 string, excluding any terminating zeroes.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
+
+
+</dd>
+</div>
+<div id="setPosition,FileStream,int64,StreamSeekPos">
+<dt><pre><span class="Keyword">proc</span> <a href="#setPosition%2CFileStream%2Cint64%2CStreamSeekPos"><span class="Identifier">setPosition</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">int64</span><span class="Other">;</span> <span class="Identifier">relativeTo</span><span class="Other">:</span> <a href="binstreams.html#StreamSeekPos"><span class="Identifier">StreamSeekPos</span></a> <span class="Other">=</span> <span class="Identifier">sspSet</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Sets the file position of the file associated with the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
+
+
+</dd>
+</div>
+<div id="setPosition,MemStream,int64,StreamSeekPos">
+<dt><pre><span class="Keyword">proc</span> <a href="#setPosition%2CMemStream%2Cint64%2CStreamSeekPos"><span class="Identifier">setPosition</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">int64</span><span class="Other">;</span> <span class="Identifier">relativeTo</span><span class="Other">:</span> <a href="binstreams.html#StreamSeekPos"><span class="Identifier">StreamSeekPos</span></a> <span class="Other">=</span> <span class="Identifier">sspSet</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <p>Sets the current read/write position of the memory stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the stream is not open.</p>
 
 
 </dd>
-<a id="read,MemStream,openArray[T],Natural,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#read%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">read</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
-                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
-<dd>
-
-<p>Reads <tt class="docutils literal"><span class="pre">numValues</span></tt> number of values from the stream into <tt class="docutils literal"><span class="pre">buf</span></tt>, starting from <tt class="docutils literal"><span class="pre">startIndex</span></tt>.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="read,MemStream,typedesc[SomeNumber]"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#read%2CMemStream%2Ctypedesc%5BSomeNumber%5D"><span class="Identifier">read</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
-<dd>
-
-<p>Reads a single value of type <tt class="docutils literal"><span class="pre">T</span></tt> from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="readStr,MemStream,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#readStr%2CMemStream%2CNatural"><span class="Identifier">readStr</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
-    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">IndexError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Reads <tt class="docutils literal"><span class="pre">length</span></tt> number of bytes from the stream as an UTF-8 string. <tt class="docutils literal"><span class="pre">length</span></tt> should be equal to the number of bytes in the UTF-8 string, excluding any terminating zeroes.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="readChar,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#readChar%2CMemStream"><span class="Identifier">readChar</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">char</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">IndexError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Reads a single char (byte) from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="readBool,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#readBool%2CMemStream"><span class="Identifier">readBool</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">IndexError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Reads a byte as a bool from the stream. Zero bytes are considered false, any other value is considered true.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="peek,MemStream,typedesc[SomeNumber]"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CMemStream%2Ctypedesc%5BSomeNumber%5D"><span class="Identifier">peek</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T:type</span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) a single value of type <tt class="docutils literal"><span class="pre">T</span></tt> from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="peek,MemStream,openArray[T],Natural,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peek%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">peek</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Keyword">var</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
-                       <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre">numValues</span></tt> number of values into <tt class="docutils literal"><span class="pre">buf</span></tt> starting from <tt class="docutils literal"><span class="pre">startIndex</span></tt>.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="peekStr,MemStream,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peekStr%2CMemStream%2CNatural"><span class="Identifier">peekStr</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">length</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
-    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">IndexError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) <tt class="docutils literal"><span class="pre">length</span></tt> number of bytes from the stream as an UTF-8 string.  <tt class="docutils literal"><span class="pre">length</span></tt> should be equal to the the number of bytes in the UTF-8 string, excluding any terminating zeroes.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="peekChar,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peekChar%2CMemStream"><span class="Identifier">peekChar</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">char</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">IndexError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) a single char (byte) from the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="peekBool,MemStream"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#peekBool%2CMemStream"><span class="Identifier">peekBool</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">IndexError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Peeks (reads without advancing the file position) a byte as a bool from the stream. Zero bytes are considered false, any other value is considered true.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the stream is not open or if an attemp has been made to read past the end of the in-memory buffer.</p>
-
-
-</dd>
-<a id="write,MemStream,openArray[T],Natural,Natural"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#write%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
+</div>
+<div id="write,FileStream,openArray[T],Natural,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#write%2CFileStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
                         <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
 <dd>
 
-<p>Writes <tt class="docutils literal"><span class="pre">numValues</span></tt> number of values from <tt class="docutils literal"><span class="pre">buf</span></tt> starting from <tt class="docutils literal"><span class="pre">startIndex</span></tt> to the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the memory stream is not open.</p>
+<p>Writes <tt class="docutils literal"><span class="pre"><span class="Identifier">numValues</span></span></tt> number of values from <tt class="docutils literal"><span class="pre"><span class="Identifier">buf</span></span></tt> starting from <tt class="docutils literal"><span class="pre"><span class="Identifier">startIndex</span></span></tt> to the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on write errors.</p>
 
 
 </dd>
-<a id="write,MemStream,T"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#write%2CMemStream%2CT"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">SomeNumber</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span></pre></dt>
+</div>
+<div id="write,FileStream,T">
+<dt><pre><span class="Keyword">proc</span> <a href="#write%2CFileStream%2CT"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span></pre></dt>
 <dd>
 
-<p>Writes a single value to the stream. The width of the written item is the same as that of <tt class="docutils literal"><span class="pre">value</span></tt>.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the memory stream is not open.</p>
+<p>Writes a single value to the stream. The width of the written item is the same as that of <tt class="docutils literal"><span class="pre"><span class="Identifier">value</span></span></tt>.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on write errors.</p>
 
 
 </dd>
-<a id="writeStr,MemStream,string"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#writeStr%2CMemStream%2Cstring"><span class="Identifier">writeStr</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+</div>
+<div id="write,MemStream,openArray[T],Natural,Natural">
+<dt><pre><span class="Keyword">proc</span> <a href="#write%2CMemStream%2CopenArray%5BT%5D%2CNatural%2CNatural"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">buf</span><span class="Other">:</span> <span class="Identifier">openArray</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">;</span>
+                        <span class="Identifier">startIndex</span><span class="Other">,</span> <span class="Identifier">numValues</span><span class="Other">:</span> <span class="Identifier">Natural</span><span class="Other">)</span></pre></dt>
+<dd>
+
+<p>Writes <tt class="docutils literal"><span class="pre"><span class="Identifier">numValues</span></span></tt> number of values from <tt class="docutils literal"><span class="pre"><span class="Identifier">buf</span></span></tt> starting from <tt class="docutils literal"><span class="pre"><span class="Identifier">startIndex</span></span></tt> to the stream.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the memory stream is not open.</p>
+
+
+</dd>
+</div>
+<div id="write,MemStream,T">
+<dt><pre><span class="Keyword">proc</span> <a href="#write%2CMemStream%2CT"><span class="Identifier">write</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">AllTypes</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span></pre></dt>
+<dd>
+
+<p>Writes a single value to the stream. The width of the written item is the same as that of <tt class="docutils literal"><span class="pre"><span class="Identifier">value</span></span></tt>.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the memory stream is not open.</p>
+
+
+</dd>
+</div>
+<div id="writeStr,FileStream,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeStr%2CFileStream%2Cstring"><span class="Identifier">writeStr</span></a><span class="Other">(</span><span class="Identifier">fs</span><span class="Other">:</span> <a href="binstreams.html#FileStream"><span class="Identifier">FileStream</span></a><span class="Other">;</span> <span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">WriteIOEffect</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+<p>Writes the UTF-8 byte sequence of a string to the stream. No terminating zero byte is written.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> on write errors.</p>
+
+
+</dd>
+</div>
+<div id="writeStr,MemStream,string">
+<dt><pre><span class="Keyword">proc</span> <a href="#writeStr%2CMemStream%2Cstring"><span class="Identifier">writeStr</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 <p>Writes the UTF-8 byte sequence of a string to the stream. No terminating zero character is written.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the memory stream is not open.</p>
+<p>Raises an <tt class="docutils literal"><span class="pre"><span class="Identifier">IOError</span></span></tt> if the memory stream is not open.</p>
 
 
 </dd>
-<a id="writeChar,MemStream,char"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#writeChar%2CMemStream%2Cchar"><span class="Identifier">writeChar</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">ch</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Writes a single char (byte) to the stream.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the memory stream is not open.</p>
-
-
-</dd>
-<a id="writeBool,MemStream,bool"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#writeBool%2CMemStream%2Cbool"><span class="Identifier">writeBool</span></a><span class="Other">(</span><span class="Identifier">ms</span><span class="Other">:</span> <a href="binstreams.html#MemStream"><span class="Identifier">MemStream</span></a><span class="Other">;</span> <span class="Identifier">b</span><span class="Other">:</span> <span class="Identifier">bool</span><span class="Other">)</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">IOError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-<p>Writes a single bool to the stream. <tt class="docutils literal"><span class="pre">0</span></tt> is written for false and <tt class="docutils literal"><span class="pre">1</span></tt> for true.</p>
-<p>Raises an <tt class="docutils literal"><span class="pre">IOError</span></tt> if the memory stream is not open.</p>
-
-
-</dd>
+</div>
 
 </dl></div>
 
@@ -790,7 +760,7 @@ Sets the endianness (effective from the next read/write operation).
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-09-15 08:07:57 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-10-29 00:38:23 UTC</small>
       </div>
     </div>
   </div>

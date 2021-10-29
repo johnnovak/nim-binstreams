@@ -1,5 +1,5 @@
 import os, unittest
-import stew/endians2
+import binstreams/deps/stew/endians2
 
 import binstreams
 
@@ -18,7 +18,7 @@ const
   MagicValue64_2 = 0xfeedface0d15ea5e'u64
   TestString = "Some girls wander by mistake"
   TestChar = char(42)
-  TestBooleans = @[-127'i8, -1'i8, 0'i8, 1'i8, 127'i8]
+  TestBooleans = @[-127'i8, -1'i8, 0'i8, 1'i8, 64'i8]
 
 block:
   var outf = open(TestFileBE, fmWrite)
@@ -157,12 +157,12 @@ suite "Common / Big-endian":
       assert s.getPosition == 28
 
       assert s.readStr(TestString.len) == TestString
-      assert s.readChar() == TestChar
-      assert s.readBool() == true
-      assert s.readBool() == true
-      assert s.readBool() == false
-      assert s.readBool() == true
-      assert s.readBool() == true
+      assert s.read(char) == TestChar
+      assert s.read(bool) == true
+      assert s.read(bool) == true
+      assert s.read(bool) == false
+      assert s.read(bool) == true
+      assert s.read(bool) == true
 
     var fs = newFileStream(TestFileBE, bigEndian)
     tests(fs)
@@ -203,12 +203,12 @@ suite "Common / Big-endian":
       s.setPosition(28)
       assert s.peekStr(TestString.len) == TestString
       s.setPosition(TestString.len, sspCur)
-      assert s.peekChar() == TestChar; s.setPosition(1, sspCur)
-      assert s.peekBool() == true;     s.setPosition(1, sspCur)
-      assert s.peekBool() == true;     s.setPosition(1, sspCur)
-      assert s.peekBool() == false;    s.setPosition(1, sspCur)
-      assert s.peekBool() == true;     s.setPosition(1, sspCur)
-      assert s.peekBool() == true
+      assert s.peek(char) == TestChar; s.setPosition(1, sspCur)
+      assert s.peek(bool) == true;     s.setPosition(1, sspCur)
+      assert s.peek(bool) == true;     s.setPosition(1, sspCur)
+      assert s.peek(bool) == false;    s.setPosition(1, sspCur)
+      assert s.peek(bool) == true;     s.setPosition(1, sspCur)
+      assert s.peek(bool) == true
 
     var fs = newFileStream(TestFileBE, bigEndian)
     tests(fs)
@@ -222,8 +222,24 @@ suite "Common / Big-endian":
   # {{{ read/openArray
   test "read/openArray":
     template tests(s: untyped) =
-      var arr_i8: array[4, int8]
 
+      var arr_char: array[4, char]
+      s.read(arr_char, 1, 2)
+      assert arr_char[0] == 0.char
+      assert arr_char[1] == 0xde.char
+      assert arr_char[2] == 0xad.char
+      assert arr_char[3] == 0.char
+
+      var arr_bool: array[4, bool]
+      s.setPosition(0)
+      s.read(arr_bool, 1, 2)
+      assert arr_bool[0] == false
+      assert arr_bool[1] == true
+      assert arr_bool[2] == true
+      assert arr_bool[3] == false
+
+      var arr_i8: array[4, int8]
+      s.setPosition(0)
       s.read(arr_i8, 1, 2)
       assert arr_i8[0] == 0
       assert arr_i8[1] == 0xde'i8
@@ -300,6 +316,7 @@ suite "Common / Big-endian":
 
       assert s.getPosition() == 28
 
+
     var fs = newFileStream(TestFileBE, bigEndian)
     tests(fs)
     fs.close()
@@ -347,6 +364,21 @@ suite "Common / Big-endian":
   # {{{ peek/openArray
   test "peek/openArray":
     template tests(s: untyped) =
+      var arr_char: array[4, char]
+      s.peek(arr_char, 1, 2)
+      assert arr_char[0] == 0.char
+      assert arr_char[1] == 0xde.char
+      assert arr_char[2] == 0xad.char
+      assert arr_char[3] == 0.char
+
+      var arr_bool: array[4, bool]
+      s.setPosition(0)
+      s.peek(arr_bool, 1, 2)
+      assert arr_bool[0] == false
+      assert arr_bool[1] == true
+      assert arr_bool[2] == true
+      assert arr_bool[3] == false
+
       var arr_i8: array[4, int8]
       s.peek(arr_i8, 1, 2)
       assert arr_i8[0] == 0
@@ -482,9 +514,9 @@ suite "Common / Big-endian":
       s.write(TestFloat64)
       s.writeStr("")
       s.writeStr(TestString)
-      s.writeChar(TestChar)
-      s.writeBool(true)
-      s.writeBool(false)
+      s.write(TestChar)
+      s.write(true)
+      s.write(false)
 
     template tests_read(s: untyped) =
       assert s.read(int8)    == 0xde'i8
@@ -499,9 +531,9 @@ suite "Common / Big-endian":
       assert s.read(float64) == TestFloat64
       assert s.readStr(0) == ""
       assert s.readStr(TestString.len) == TestString
-      assert s.readChar() == TestChar
-      assert s.readBool() == true
-      assert s.readBool() == false
+      assert s.read(char) == TestChar
+      assert s.read(bool) == true
+      assert s.read(bool) == false
 
     var fs = newFileStream(TestFileBE, bigEndian, fmWrite)
     tests_write(fs)
@@ -604,12 +636,12 @@ suite "Common / Little-endian":
       assert s.getPosition == 28
 
       assert s.readStr(TestString.len) == TestString
-      assert s.readChar() == TestChar
-      assert s.readBool() == true
-      assert s.readBool() == true
-      assert s.readBool() == false
-      assert s.readBool() == true
-      assert s.readBool() == true
+      assert s.read(char) == TestChar
+      assert s.read(bool) == true
+      assert s.read(bool) == true
+      assert s.read(bool) == false
+      assert s.read(bool) == true
+      assert s.read(bool) == true
 
     var fs = newFileStream(TestFileLE, littleEndian)
     tests(fs)
@@ -650,12 +682,12 @@ suite "Common / Little-endian":
       s.setPosition(28)
       assert s.peekStr(TestString.len) == TestString
       s.setPosition(TestString.len, sspCur)
-      assert s.peekChar() == TestChar; s.setPosition(1, sspCur)
-      assert s.peekBool() == true;     s.setPosition(1, sspCur)
-      assert s.peekBool() == true;     s.setPosition(1, sspCur)
-      assert s.peekBool() == false;    s.setPosition(1, sspCur)
-      assert s.peekBool() == true;     s.setPosition(1, sspCur)
-      assert s.peekBool() == true
+      assert s.peek(char) == TestChar; s.setPosition(1, sspCur)
+      assert s.peek(bool) == true;     s.setPosition(1, sspCur)
+      assert s.peek(bool) == true;     s.setPosition(1, sspCur)
+      assert s.peek(bool) == false;    s.setPosition(1, sspCur)
+      assert s.peek(bool) == true;     s.setPosition(1, sspCur)
+      assert s.peek(bool) == true
 
     var fs = newFileStream(TestFileLE, littleEndian)
     tests(fs)
@@ -669,8 +701,23 @@ suite "Common / Little-endian":
   # {{{ read/openArray
   test "read/openArray":
     template tests(s: untyped) =
-      var arr_i8: array[4, int8]
+      var arr_char: array[4, char]
+      s.read(arr_char, 1, 2)
+      assert arr_char[0] == 0.char
+      assert arr_char[1] == 0xbe.char
+      assert arr_char[2] == 0xba.char
+      assert arr_char[3] == 0.char
 
+      var arr_bool: array[4, bool]
+      s.setPosition(0)
+      s.read(arr_bool, 1, 2)
+      assert arr_bool[0] == false
+      assert arr_bool[1] == true
+      assert arr_bool[2] == true
+      assert arr_bool[3] == false
+
+      var arr_i8: array[4, int8]
+      s.setPosition(0)
       s.read(arr_i8, 1, 2)
       assert arr_i8[0] == 0
       assert arr_i8[1] == 0xbe'i8
@@ -794,6 +841,21 @@ suite "Common / Little-endian":
   # {{{ peek/openArray
   test "peek/openArray":
     template tests(s: untyped) =
+      var arr_char: array[4, char]
+      s.peek(arr_char, 1, 2)
+      assert arr_char[0] == 0.char
+      assert arr_char[1] == 0xbe.char
+      assert arr_char[2] == 0xba.char
+      assert arr_char[3] == 0.char
+
+      var arr_bool: array[4, bool]
+      s.setPosition(0)
+      s.peek(arr_bool, 1, 2)
+      assert arr_bool[0] == false
+      assert arr_bool[1] == true
+      assert arr_bool[2] == true
+      assert arr_bool[3] == false
+
       var arr_i8: array[4, int8]
       s.peek(arr_i8, 1, 2)
       assert arr_i8[0] == 0
@@ -929,9 +991,9 @@ suite "Common / Little-endian":
       s.write(TestFloat64)
       s.writeStr("")
       s.writeStr(TestString)
-      s.writeChar(TestChar)
-      s.writeBool(true)
-      s.writeBool(false)
+      s.write(TestChar)
+      s.write(true)
+      s.write(false)
 
     template tests_read(s: untyped) =
       assert s.read(int8)    == 0xde'i8
@@ -946,9 +1008,9 @@ suite "Common / Little-endian":
       assert s.read(float64) == TestFloat64
       assert s.readStr(0) == ""
       assert s.readStr(TestString.len) == TestString
-      assert s.readChar() == TestChar
-      assert s.readBool() == true
-      assert s.readBool() == false
+      assert s.read(char) == TestChar
+      assert s.read(bool) == true
+      assert s.read(bool) == false
 
     var fs = newFileStream(TestFileLE, littleEndian, fmWrite)
     tests_write(fs)
@@ -1013,8 +1075,8 @@ suite "Common / Little-endian":
     writeBufTest_MemStream(WriteBufSize + 10)
   # }}}
 # }}}
-# {{{ Common / Mixed endian
-suite "Common / Mixed endian":
+# {{{ Common / Mixed-endian
+suite "Common / Mixed-endian":
   test "read/write":
     template writeTestStream(s: untyped) =
       s.write(0xde'i8)
@@ -1033,9 +1095,9 @@ suite "Common / Mixed endian":
       s.write(TestFloat64)
       s.writeStr("")
       s.writeStr(TestString)
-      s.writeChar(TestChar)
-      s.writeBool(true)
-      s.writeBool(false)
+      s.write(TestChar)
+      s.write(true)
+      s.write(false)
 
     template readTestStream(s: untyped) =
       assert s.read(int8)    == 0xde'i8
@@ -1054,9 +1116,9 @@ suite "Common / Mixed endian":
       assert s.read(float64) == TestFloat64
       assert s.readStr(0) == ""
       assert s.readStr(TestString.len) == TestString
-      assert s.readChar() == TestChar
-      assert s.readBool() == true
-      assert s.readBool() == false
+      assert s.read(char) == TestChar
+      assert s.read(bool) == true
+      assert s.read(bool) == false
 
     var fs = newFileStream(TestFileLE, bigEndian, fmWrite)
     writeTestStream(fs)
@@ -1122,7 +1184,6 @@ suite "MemStream":
       ms.setPosition(-60, sspCur)
 
   # }}}
-
 # {{{ Test data file cleanup
 
 removeFile(TestFileBE)
@@ -1132,7 +1193,7 @@ removeFile(TestFileBigLE)
 removeFile(TestFile)
 
 # }}}
- 
+
 # TODO add tests:
 #
 # - atEnd

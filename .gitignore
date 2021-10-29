@@ -2,3 +2,5 @@
 *~
 .DS_Store
 *.exe
+binstreams.out
+tests/tests

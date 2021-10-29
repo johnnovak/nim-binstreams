@@ -11,7 +11,7 @@ Main features:
 * Support for file and memory buffer backed streams through a single interface
 * Possibility to switch the endianness of a stream on the fly
 * Mixed read/write streams are supported
-* Generics friendly API
+* Generics-friendly API
 
 
 ## Installation
@@ -34,28 +34,28 @@ import binstreams
 # File modes work exactly like with `open`.
 var fs = newFileStream("outfile", bigEndian, fmWrite)
 
-# There's just a generic `write()` proc to write single values.
+# There's just a single generic `write()` proc to write single values.
 # The width of the value written is determined by the type of the passed in
 # argument. Endianness conversions are handled automatically, if required.
 fs.write(3'i8)
 fs.write(42'i16)
 fs.write(0xcafe'u16)
+fs.write('X')
+fs.write(true)
 
 # Writing multiple values from a buffer (openArray) is just as easy.
 var buf = newSeq[float32](100)
 fs.write(buf, startIndex=5, numValues=30)
 
-# It is possible to change the endiannes of the stream at any time.
+# It is possible to change the endiannes of the stream on-the-fly.
 fs.endian = littleEndian
 fs.write(12.34'f32)
 fs.write(0xcafebabe'i32)
 fs.endian = bigEndian
 fs.write(0xffee81'u64)
 
-# Helpers for writing strings, chars and bools are provided.
+# Helper for writing strings
 fs.writeStr("some UTF-8 string")
-fs.writeChar('X')
-fs.writeBool(true)
 
 # The file position can be queried and changed at any time.
 let pos = fs.getPosition()
@@ -68,7 +68,7 @@ fs.close()
 
 
 # It is possible to create a new stream from a valid file handle.
-var f = open("outfile")
+var f = open("infile")
 fs = newFileStream(f, bigEndian)
 
 # The type of the value needs to be specified when doing single-value reads.
@@ -78,11 +78,9 @@ echo fs.read(uint8)
 fs.endian = littleEndian
 echo fs.read(int16)
 echo fs.read(float32)
-
-# Helpers for strings, chars and bools
+echo fs.read(bool)
+echo fs.read(char)
 echo fs.readStr(10)
-echo fs.readChar()
-echo fs.readBool()
 
 # Reading multiple values into a buffer
 fs.setPosition(5)
@@ -92,7 +90,7 @@ fs.read(buf, startIndex=5, numValues=10)
 
 ## License
 
-Copyright © 2020 John Novak <<john@johnnovak.net>>
+Copyright © 2020-2021 John Novak <<john@johnnovak.net>>
 
 This work is free. You can redistribute it and/or modify it under the terms of
 the [Do What The Fuck You Want To Public License, Version 2](http://www.wtfpl.net/), as published

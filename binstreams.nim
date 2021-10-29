@@ -1,24 +1,31 @@
 ## :Authors: John Novak
 ##
-## **nim-binstreams** is a no-dependencies Nim library that provides endianness
-## aware binary streams. It is a wrapper over the standard `io` module, and it
-## uses [stew/endians2](https://github.com/status-im/nim-stew/blob/master/stew/endians2.nim)
+## **nim-binstreams** is a no-dependencies Nim library that provides
+## endianness aware binary streams. It is a wrapper over the standard `io`
+## module, and it uses
+## [stew/endians2](https://github.com/status-im/nim-stew/blob/master/stew/endians2.nim)
 ## for endianness conversions (included in the project), so it should be
 ## reasonably fast.
 ##
 ## Main features:
 ##
-## * Support for file and memory buffer backed streams through a single interface
+## * Support for file and memory buffer backed streams through a single
+##   interface
 ## * Possibility to switch the endianness of a stream on the fly
 ## * Mixed read/write streams are supported
-## * Generics friendly API
+## * Generics-friendly API
 ##
 
 import strformat
 import strutils
 
-import stew/endians2
+import binstreams/deps/stew/endians2
 
+
+type AllTypes = bool | char |
+                int8 | int16 | int32 | int64 |
+                uint | uint8 | uint16 | uint32 | uint64 |
+                float32 | float64
 
 when not defined(js):
   type
@@ -49,8 +56,8 @@ when not defined(js):
 
   proc newFileStream*(f: File, endian: Endianness): FileStream =
     ## Creates a new file stream from a file handle with the given endianness.
-    ## It is possible to change the endianness later. The current file
-    ## position is not changed.
+    ## It is possible to change the endianness later on-the-fly. The current
+    ## file position is not changed.
     new(result)
     result.f = f
     result.endian = endian
@@ -59,10 +66,10 @@ when not defined(js):
                       mode: FileMode = fmRead,
                       bufSize: int = -1): FileStream =
     ## Creates a new file stream from a file named `filename` with the given
-    ## `mode` and endianness. It is possible to change the endianness later.
-    ## It is also possible to explicitly set the `bufSize` (the default is to
-    ## use whatever default `open` uses). This method does not raise an
-    ## exception if the file cannot be opened; it just returns `nil`.
+    ## `mode` and endianness. It is possible to change the endianness later
+    ## on-the-fly. It is also possible to explicitly set the `bufSize` (the
+    ## default is to use whatever default `open` uses). This method does not
+    ## raise an exception if the file cannot be opened; it just returns `nil`.
     var f: File
     if open(f, filename, mode, bufSize):
       result = newFileStream(f, endian)
@@ -72,9 +79,9 @@ when not defined(js):
                        mode: FileMode = fmRead,
                        bufSize: int = -1): FileStream =
     ## Creates a new file stream from a file named `filename` with the given
-    ## `mode` and endianness. It is possible to change the endianness later.
-    ## It is also possible to explicitly set the `bufSize` (the default is to
-    ## use whatever default `open` uses).
+    ## `mode` and endianness. It is possible to change the endianness later
+    ## on-the-fly. It is also possible to explicitly set the `bufSize` (the
+    ## default is to use whatever default `open` uses).
     ##
     ## Raises an `IOError` if the file cannot be opened.
     var f: File
@@ -134,16 +141,17 @@ when not defined(js):
   proc getPosition*(fs: FileStream): int64 {.inline.} =
     ## Gets the file position of the file associated with the stream.
     ##
-    ## Note: even if you created the stream from a file handle, it is
-    ## preferable to use this method for querying the current file position as
-    ## the stream maintains its own file position for better performance (so
-    ## no calls to OS functions).
+    ## **Note:** Even if you created the stream from a file handle, it is
+    ## preferable to use this method for querying the current file position to
+    ## avoid OS calls (the stream maintains its own file position for better
+    ## performance).
     ##
     ## Raises an `IOError` if the stream is not open.
     fs.checkStreamOpen()
     result = fs.pos
 
-  proc setPosition*(fs: FileStream, pos: int64, relativeTo: StreamSeekPos = sspSet) =
+  proc setPosition*(fs: FileStream, pos: int64,
+                    relativeTo: StreamSeekPos = sspSet) =
     ## Sets the file position of the file associated with the stream.
     ##
     ## Raises an `IOError` if the stream is not open.
@@ -155,8 +163,8 @@ when not defined(js):
     raise newException(IOError,
       fmt"cannot read from stream, filename: '{fs.filename}'")
 
-  proc readAndSwap[T: SomeNumber](fs: FileStream, buf: var openArray[T],
-                                  startIndex, numValues: Natural) {.inline.} =
+  proc readAndSwap[T: AllTypes](fs: FileStream, buf: var openArray[T],
+                                startIndex, numValues: Natural) {.inline.} =
     var
       valuesLeft = numValues
       bufIndex = startIndex
@@ -181,8 +189,8 @@ when not defined(js):
       inc(bufIndex, valuesRead)
 
 
-  proc read*[T: SomeNumber](fs: FileStream, buf: var openArray[T],
-                            startIndex, numValues: Natural) =
+  proc read*[T: AllTypes](fs: FileStream, buf: var openArray[T],
+                          startIndex, numValues: Natural) =
     ## Reads `numValues` number of values from the stream into `buf`, starting
     ## from `startIndex`.
     ##
@@ -196,13 +204,20 @@ when not defined(js):
         bytesToRead = numValues * sizeof(T)
         bytesRead = readBuffer(fs.f, buf[startIndex].addr, bytesToRead)
 
+      # Apparently Nim only looks at the lowest bit when treating an openArray
+      # of bytes as an openArray of bools, so we need a conversions step here.
+      if T is bool:
+        let byteArr = cast[ptr UncheckedArray[byte]](buf)
+        for i in startIndex..<startIndex+bytesToRead:
+          if byteArr[i] > 0: byteArr[i] = 1
+
       if bytesRead != bytesToRead:
         fs.raiseReadError()
       inc(fs.pos, bytesRead)
     else:
       fs.readAndSwap(buf, startIndex, numValues)
 
-  proc read*(fs: FileStream, T: typedesc[SomeNumber]): T =
+  proc read*(fs: FileStream, T: typedesc[AllTypes]): T =
     ## Reads a single value of type `T` from the stream.
     ##
     ## Raises an `IOError` on read errors.
@@ -219,34 +234,21 @@ when not defined(js):
     result = newString(length)
     fs.read(toOpenArrayByte(result, 0, length-1), 0, length)
 
-  proc readChar*(fs: FileStream): char =
-    ## Reads a single char (byte) from the stream.
-    ##
-    ## Raises an `IOError` on read errors.
-    result = cast[char](fs.read(byte))
-
-  proc readBool*(fs: FileStream): bool =
-    ## Reads a byte as a bool from the stream. Zero bytes are considered
-    ## false, any other value is considered true.
-    ##
-    ## Raises an `IOError` on read errors.
-    result = fs.read(byte) != 0
-
 
   template doPeekFileStream(fs: FileStream, body: untyped): untyped =
     let pos = fs.getPosition()
     defer: fs.setPosition(pos)
     body
 
-  proc peek*(fs: FileStream, T: typedesc[SomeNumber]): T =
+  proc peek*(fs: FileStream, T: typedesc[AllTypes]): T =
     ## Peeks (reads without advancing the file position) a single value of
     ## type `T` from the stream.
     ##
     ## Raises an `IOError` on read errors.
     doPeekFileStream(fs): fs.read(T)
 
-  proc peek*[T: SomeNumber](fs: FileStream, buf: var openArray[T],
-                            startIndex, numValues: Natural) =
+  proc peek*[T: AllTypes](fs: FileStream, buf: var openArray[T],
+                          startIndex, numValues: Natural) =
     ## Peeks (reads without advancing the file position) `numValues` number of
     ## values into `buf` starting from `startIndex`.
     ##
@@ -262,28 +264,13 @@ when not defined(js):
     ## Raises an `IOError` on read errors.
     doPeekFileStream(fs): fs.readStr(length)
 
-  proc peekChar*(fs: FileStream): char =
-    ## Peeks (reads without advancing the file position) a single char (byte)
-    ## from the stream.
-    ## 
-    ## Raises an `IOError` on read errors.
-    doPeekFileStream(fs): fs.readChar()
-
-  proc peekBool*(fs: FileStream): bool =
-    ## Peeks (reads without advancing the file position) a byte as a bool from
-    ## the stream. Zero bytes are considered false, any other value is
-    ## considered true.
-    ##
-    ## Raises an `IOError` on read errors.
-    doPeekFileStream(fs): fs.readBool()
-
 
   proc raiseWriteError(fs: FileStream) =
     raise newException(IOError,
       fmt"cannot write to stream, filename: '{fs.filename}'")
 
-  proc swapAndWrite[T: SomeNumber](fs: FileStream, buf: openArray[T],
-                                   startIndex, numValues: Natural) =
+  proc swapAndWrite[T: AllTypes](fs: FileStream, buf: openArray[T],
+                                 startIndex, numValues: Natural) =
     var
       writeBuf {.noinit.}: array[WriteBufSize, T]
       valuesLeft = numValues
@@ -312,8 +299,8 @@ when not defined(js):
       dec(valuesLeft, valuesToWrite)
 
 
-  proc write*[T: SomeNumber](fs: FileStream, buf: openArray[T],
-                             startIndex, numValues: Natural) =
+  proc write*[T: AllTypes](fs: FileStream, buf: openArray[T],
+                           startIndex, numValues: Natural) =
     ## Writes `numValues` number of values from `buf` starting from
     ## `startIndex` to the stream.
     ##
@@ -333,7 +320,7 @@ when not defined(js):
     else:
       fs.swapAndWrite(buf, startIndex, numValues)
 
-  proc write*[T: SomeNumber](fs: FileStream, value: T) =
+  proc write*[T: AllTypes](fs: FileStream, value: T) =
     ## Writes a single value to the stream. The width of the written item is
     ## the same as that of `value`.
     ##
@@ -349,19 +336,6 @@ when not defined(js):
     ## Raises an `IOError` on write errors.
     fs.write(toOpenArrayByte(s, 0, s.len-1), 0, s.len)
 
-  proc writeChar*(fs: FileStream, ch: char) =
-    ## Writes a single char (byte) to the stream.
-    ##
-    ## Raises an `IOError` on write errors.
-    fs.write(cast[byte](ch))
-
-  proc writeBool*(fs: FileStream, b: bool) =
-    ## Writes a single bool to the stream. `0` is written for false and `1`
-    ## for true.
-    ##
-    ## Raises an `IOError` on write errors.
-    fs.write(cast[byte](b))
-
   # }}}
 
 # {{{ Memory stream
@@ -375,7 +349,7 @@ type
 
 proc newMemStream*(data: seq[byte], endian: Endianness): MemStream =
   ## Creates a new memory stream from a sequence of bytes with the given
-  ## endianness. It is possible to change the endianness later.
+  ## endianness. It is possible to change the endianness later on-the-fly.
   new(result)
   result.data = data
   result.endian = endian
@@ -384,7 +358,7 @@ proc newMemStream*(data: seq[byte], endian: Endianness): MemStream =
 proc newMemStream*(endian: Endianness): MemStream =
   ## Creates a new memory stream with an empty internal buffer (typically for
   ## writing) with the given endianness. It is possible to change the
-  ## endianness later.
+  ## endianness later on-the-fly.
   newMemStream(@[], endian)
 
 proc close*(ms: MemStream) =
@@ -424,7 +398,8 @@ proc getPosition*(ms: MemStream): int64 =
   ms.checkStreamOpen()
   ms.pos.int64
 
-proc setPosition*(ms: MemStream, pos: int64, relativeTo: StreamSeekPos = sspSet) =
+proc setPosition*(ms: MemStream, pos: int64,
+                  relativeTo: StreamSeekPos = sspSet) =
   ## Sets the current read/write position of the memory stream.
   ##
   ## Raises an `IOError` if the stream is not open.
@@ -440,8 +415,8 @@ proc setPosition*(ms: MemStream, pos: int64, relativeTo: StreamSeekPos = sspSet)
   ms.pos = newPos
 
 
-proc read*[T: SomeNumber](ms: MemStream, buf: var openArray[T],
-                          startIndex, numValues: Natural) =
+proc read*[T: AllTypes](ms: MemStream, buf: var openArray[T],
+                        startIndex, numValues: Natural) =
   ## Reads `numValues` number of values from the stream into `buf`, starting
   ## from `startIndex`.
   ##
@@ -451,7 +426,7 @@ proc read*[T: SomeNumber](ms: MemStream, buf: var openArray[T],
   if numValues == 0: return
 
   if startIndex + numValues > buf.len:
-    raise newException(IndexError,
+    raise newException(IndexDefect,
       "Out of bounds: startIndex + numValues > bufLen " &
       fmt"(startIndex: {startIndex}, numValues: {numValues}, " &
       fmt"bufLen: {buf.len})")
@@ -476,7 +451,7 @@ proc read*[T: SomeNumber](ms: MemStream, buf: var openArray[T],
     ms.pos += sizeof(T)
 
 
-proc read*(ms: MemStream, T: typedesc[SomeNumber]): T =
+proc read*(ms: MemStream, T: typedesc[AllTypes]): T =
   ## Reads a single value of type `T` from the stream.
   ##
   ## Raises an `IOError` if the stream is not open or if an attemp has been
@@ -495,28 +470,13 @@ proc readStr*(ms: MemStream, length: Natural): string =
   result = newString(length)
   ms.read(toOpenArrayByte(result, 0, result.high), 0, length)
 
-proc readChar*(ms: MemStream): char =
-  ## Reads a single char (byte) from the stream.
-  ##
-  ## Raises an `IOError` if the stream is not open or if an attemp has been
-  ## made to read past the end of the in-memory buffer.
-  result = cast[char](ms.read(byte))
-
-proc readBool*(ms: MemStream): bool =
-  ## Reads a byte as a bool from the stream. Zero bytes are considered
-  ## false, any other value is considered true.
-  ##
-  ## Raises an `IOError` if the stream is not open or if an attemp has been
-  ## made to read past the end of the in-memory buffer.
-  result = ms.read(byte) != 0
-
 
 template doPeekMemStream(ms: MemStream, body: untyped): untyped =
   let pos = ms.getPosition()
   defer: ms.setPosition(pos)
   body
 
-proc peek*(ms: MemStream, T: typedesc[SomeNumber]): T =
+proc peek*(ms: MemStream, T: typedesc[AllTypes]): T =
   ## Peeks (reads without advancing the file position) a single value of
   ## type `T` from the stream.
   ##
@@ -524,8 +484,8 @@ proc peek*(ms: MemStream, T: typedesc[SomeNumber]): T =
   ## made to read past the end of the in-memory buffer.
   doPeekMemStream(ms): ms.read(T)
 
-proc peek*[T: SomeNumber](ms: MemStream, buf: var openArray[T],
-                          startIndex, numValues: Natural) =
+proc peek*[T: AllTypes](ms: MemStream, buf: var openArray[T],
+                        startIndex, numValues: Natural) =
   ## Peeks (reads without advancing the file position) `numValues` number of
   ## values into `buf` starting from `startIndex`.
   ##
@@ -543,25 +503,8 @@ proc peekStr*(ms: MemStream, length: Natural): string =
   ## made to read past the end of the in-memory buffer.
   doPeekMemStream(ms): ms.readStr(length)
 
-proc peekChar*(ms: MemStream): char =
-  ## Peeks (reads without advancing the file position) a single char (byte)
-  ## from the stream.
-  ##
-  ## Raises an `IOError` if the stream is not open or if an attemp has been
-  ## made to read past the end of the in-memory buffer.
-  doPeekMemStream(ms): ms.readChar()
-
-proc peekBool*(ms: MemStream): bool =
-  ## Peeks (reads without advancing the file position) a byte as a bool from
-  ## the stream. Zero bytes are considered false, any other value is
-  ## considered true.
-  ##
-  ## Raises an `IOError` if the stream is not open or if an attemp has been
-  ## made to read past the end of the in-memory buffer.
-  doPeekMemStream(ms): ms.readBool()
-
-proc write*[T: SomeNumber](ms: MemStream, buf: openArray[T],
-                           startIndex, numValues: Natural) =
+proc write*[T: AllTypes](ms: MemStream, buf: openArray[T],
+                         startIndex, numValues: Natural) =
   ## Writes `numValues` number of values from `buf` starting from
   ## `startIndex` to the stream.
   ##
@@ -584,7 +527,7 @@ proc write*[T: SomeNumber](ms: MemStream, buf: openArray[T],
     inc(ms.pos, sizeof(T))
 
 
-proc write*[T: SomeNumber](ms: MemStream, value: T) =
+proc write*[T: AllTypes](ms: MemStream, value: T) =
   ## Writes a single value to the stream. The width of the written item
   ## is the same as that of `value`.
   ##
@@ -599,19 +542,6 @@ proc writeStr*(ms: MemStream, s: string) =
   ##
   ## Raises an `IOError` if the memory stream is not open.
   ms.write(toOpenArrayByte(s, 0, s.len-1), 0, s.len)
-
-proc writeChar*(ms: MemStream, ch: char) =
-  ## Writes a single char (byte) to the stream.
-  ##
-  ## Raises an `IOError` if the memory stream is not open.
-  ms.write(cast[byte](ch))
-
-proc writeBool*(ms: MemStream, b: bool) =
-  ## Writes a single bool to the stream. `0` is written for false and `1`
-  ## for true.
-  ##
-  ## Raises an `IOError` if the memory stream is not open.
-  ms.write(cast[byte](b))
 
 # }}}
 

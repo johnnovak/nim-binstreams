@@ -1,0 +1,11 @@
+0.2.0
+-----
+
+- add generic `read/peek/write` support for `bool` and `char`
+- remove `read/peek/write{Bool|Char}` methods
+- remove support for `int`, `uint` and `float` (to avoid architecture related
+  ambiguity)
+- change project structure to conform to Nimble conventions
+- upgrade to Nim 1.6.0
+- upgrade to latest stew/endians2
+
